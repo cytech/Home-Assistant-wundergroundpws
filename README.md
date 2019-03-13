@@ -22,6 +22,12 @@ To get a free API key:
 
 Please consider this when using the following information.
 
+To Install, copy the custom_components directory into your .homeassistant directory
+
+or
+
+copy the contents of the custom_components into an existing custom_components directory in your .homeassistant directory.
+
 Current conditions are generated from the wundergroundpws configured pws_id.
 
 Forecast is generated from the HA configured latitude/longitude.
