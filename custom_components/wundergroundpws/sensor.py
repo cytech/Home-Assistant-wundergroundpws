@@ -143,7 +143,7 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
             friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period],
             feature='forecast',
             value=lambda wu: wu.data['daypart'][0]['narrative'][period],
-            entity_picture=lambda wu: wu.data['daypart'][0]['iconCode'][period],
+            entity_picture=lambda wu: '/local/wupws_icons/' + str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
             unit_of_measurement=unit_of_measurement,
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
