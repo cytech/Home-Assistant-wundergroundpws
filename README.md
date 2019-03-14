@@ -56,10 +56,10 @@ pws_id:
   required: true
   type: string
 lang:
-  description: Specify the language that the API returns. The current list of all Wunderground language codes is available [here](https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (EN).
+  description: Specify the language that the API returns. The current list of all Wunderground language codes is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (en-US).
   required: false
   type: string
-  default: EN
+  default: en-US
 latitude:
   description: Latitude coordinate for weather forecast (required if **longitude** is specified).
   required: false
