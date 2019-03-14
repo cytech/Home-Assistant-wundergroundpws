@@ -65,10 +65,10 @@ pws_id:
   required: true
   type: string
 lang:
-  description: Specify the language that the API returns. The current list of all Wunderground language codes is available [here](https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (EN).
+  description: Specify the language that the API returns. The current list of all Wunderground language codes is available [here](https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (en-US).
   required: false
   type: string
-  default: EN
+  default: en-US
 latitude:
   description: Latitude coordinate for weather forecast (required if **longitude** is specified).
   required: false
@@ -85,6 +85,21 @@ monitored_conditions:
   type: list
   default: symbol
   keys:
+    (generated from PWS)
+    stationID:
+      description: Your personal weather station (PWS) ID
+    solarRadiation:
+      description: Current levels of solar radiation
+    neighborhood:
+      description: WU PWS reference name
+    obsTimeLocal:
+      description: Text summary of local observation time
+    UV:
+      description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
+    winddir:
+      description: Wind degrees
+    humidity:
+      description: Relative humidity                  
     dewpt:
       description: Temperature below which water droplets begin to condense and dew can form
     heatIndex:
@@ -93,46 +108,33 @@ monitored_conditions:
       description: Wind Chill (combined effects of the temperature and wind)      
     elev:
       description: Elevation
-    neighborhood:
-      description: WU PWS reference name
-    obsTimeLocal:
-      description: Text summary of local observation time
     precipTotal:
       description: Today Total precipitation
     precipRate:
       description: Rain intensity
+    pressure:
+      description: Atmospheric air pressure
+    temp:
+      description: Current temperature
+    windGust:
+      description: Wind gusts speed
+    windSpeed:
+      description: Current wind speed
+    (generated from lat/lon forecast)        
     precip_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation intensity"
     precip_chance_1d:
-      description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation probability in %"
-    pressure:
-      description: Atmospheric air pressure
-    humidity:
-      description: Relative humidity
-    stationID:
-      description: Your personal weather station (PWS) ID
-    solarRadiation:
-      description: Current levels of solar radiation
-    temp:
-      description: Current temperature
+      description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation probability in %"      
     temp_high_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted high temperature"
     temp_low_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted low temperature"
     wind_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted wind speed"
-    UV:
-      description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
     weather_1d:
       description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Day"
     weather_1n:
       description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Night"      
-    winddir:
-      description: Wind degrees
-    windGust:
-      description: Wind gusts speed
-    windSpeed:
-      description: Current wind speed
 {% endconfiguration %}
 
 All the conditions listed above will be updated every 5 minutes.
@@ -180,37 +182,8 @@ group:
       - sensor.pws_weather_4n
 ```
 
-![Daily Forecast](/images/screenshots/wunderground_daily_forecast.png)
 
 ### {% linkable_title Weather overview %}
-
-```yaml
-sensor:
-  - platform: wunderground
-    api_key: YOUR_API_KEY
-    pws_id: YOUR_STATION_ID
-    monitored_conditions:
-      - temp_high_1d_c
-      - temp_c
-      - temp_low_1d_c
-      - precip_1d
-      - precip_1d_mm
-      - wind_kph
-      - wind_1d_kph
-
-group:
-  weather_overview:
-    name: Weather overview
-    entities:
-      - sensor.pws_weather_1d_metric
-      - sensor.pws_temp_high_1d_c
-      - sensor.pws_temp_c
-      - sensor.pws_temp_low_1d_c
-      - sensor.pws_precip_1d
-      - sensor.pws_precip_1d_mm
-      - sensor.pws_wind_kph
-      - sensor.pws_wind_1d_kph
-```
 
 <p class='note warning'>
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).

@@ -28,7 +28,7 @@ import homeassistant.helpers.config_validation as cv
 import homeassistant.config as config
 
 _RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&format=json&units={}&apiKey={}'
-_RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&language=en-US&format=json&apiKey={}'
+_RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&{}&format=json&apiKey={}'
 _LOGGER = logging.getLogger(__name__)
 
 CONF_ATTRIBUTION = "Data provided by the WUnderground weather service"
@@ -37,7 +37,7 @@ CONF_LANG = 'lang'
 LENGTH_MILLIMETERS = 'mm'
 LENGTH_METERS = 'm'
 
-DEFAULT_LANG = 'EN'
+DEFAULT_LANG = 'en-US'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
@@ -348,20 +348,12 @@ SENSOR_TYPES = {
 
 # Language Supported Codes
 LANG_CODES = [
-    'AF', 'AL', 'AR', 'HY', 'AZ', 'EU',
-    'BY', 'BU', 'LI', 'MY', 'CA', 'CN',
-    'TW', 'CR', 'CZ', 'DK', 'DV', 'NL',
-    'EN', 'EO', 'ET', 'FA', 'FI', 'FR',
-    'FC', 'GZ', 'DL', 'KA', 'GR', 'GU',
-    'HT', 'IL', 'HI', 'HU', 'IS', 'IO',
-    'ID', 'IR', 'IT', 'JP', 'JW', 'KM',
-    'KR', 'KU', 'LA', 'LV', 'LT', 'ND',
-    'MK', 'MT', 'GM', 'MI', 'MR', 'MN',
-    'NO', 'OC', 'PS', 'GN', 'PL', 'BR',
-    'PA', 'RO', 'RU', 'SR', 'SK', 'SL',
-    'SP', 'SI', 'SW', 'CH', 'TL', 'TT',
-    'TH', 'TR', 'TK', 'UA', 'UZ', 'VU',
-    'CY', 'SN', 'JI', 'YI',
+    'ar-AE', 'az-AZ', 'bg-BG', 'bn-BD', 'bn-IN', 'bs-BA', 'ca-ES', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-GB', 'en-IN',
+    'en-US', 'es-AR', 'es-ES', 'es-LA', 'es-MX', 'es-UN', 'es-US', 'et-EE', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR', 'gu-IN',
+    'he-IL', 'hi-IN', 'hr-HR', 'hu-HU', 'in-ID', 'is-IS', 'it-IT', 'iw-IL', 'ja-JP', 'jv-ID', 'ka-GE', 'kk-KZ', 'kn-IN',
+    'ko-KR', 'lt-LT', 'lv-LV', 'mk-MK', 'mn-MN', 'ms-MY', 'nl-NL', 'no-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'ru-RU',
+    'si-LK', 'sk-SK', 'sl-SI', 'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'tg-TJ',
+    'th-TH', 'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
 ]
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -529,7 +521,7 @@ class WUndergroundData:
         self._api_key = api_key
         self._pws_id = pws_id
         self._unit_system_api = unit_system_api
-        self._lang = 'lang:{}'.format(lang)
+        self._lang = 'language={}'.format(lang)
         self._latitude = latitude
         self._longitude = longitude
         self._features = set()
@@ -544,7 +536,7 @@ class WUndergroundData:
         if baseurl is _RESOURCECURRENT:
             url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key)
         else:
-            url = baseurl.format(self._latitude, self._longitude, self._unit_system_api, self._api_key)
+            url = baseurl.format(self._latitude, self._longitude, self._unit_system_api, self._lang, self._api_key)
 
         return url
 
