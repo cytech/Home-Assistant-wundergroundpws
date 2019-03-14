@@ -76,6 +76,21 @@ monitored_conditions:
   type: list
   default: symbol
   keys:
+    (generated from PWS)
+    stationID:
+      description: Your personal weather station (PWS) ID
+    solarRadiation:
+      description: Current levels of solar radiation
+    neighborhood:
+      description: WU PWS reference name
+    obsTimeLocal:
+      description: Text summary of local observation time
+    UV:
+      description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
+    winddir:
+      description: Wind degrees
+    humidity:
+      description: Relative humidity                  
     dewpt:
       description: Temperature below which water droplets begin to condense and dew can form
     heatIndex:
@@ -84,46 +99,33 @@ monitored_conditions:
       description: Wind Chill (combined effects of the temperature and wind)      
     elev:
       description: Elevation
-    neighborhood:
-      description: WU PWS reference name
-    obsTimeLocal:
-      description: Text summary of local observation time
     precipTotal:
       description: Today Total precipitation
     precipRate:
       description: Rain intensity
+    pressure:
+      description: Atmospheric air pressure
+    temp:
+      description: Current temperature
+    windGust:
+      description: Wind gusts speed
+    windSpeed:
+      description: Current wind speed
+    (generated from lat/lon forecast)        
     precip_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation intensity"
     precip_chance_1d:
-      description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation probability in %"
-    pressure:
-      description: Atmospheric air pressure
-    humidity:
-      description: Relative humidity
-    stationID:
-      description: Your personal weather station (PWS) ID
-    solarRadiation:
-      description: Current levels of solar radiation
-    temp:
-      description: Current temperature
+      description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation probability in %"      
     temp_high_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted high temperature"
     temp_low_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted low temperature"
     wind_1d:
       description: "[<sup>[1d]</sup>](#1d): Forecasted wind speed"
-    UV:
-      description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
     weather_1d:
       description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Day"
     weather_1n:
       description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Night"      
-    winddir:
-      description: Wind degrees
-    windGust:
-      description: Wind gusts speed
-    windSpeed:
-      description: Current wind speed
 ```
 
 All the conditions listed above will be updated every 5 minutes.
