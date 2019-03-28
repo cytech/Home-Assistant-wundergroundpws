@@ -1,6 +1,8 @@
 # Home-Assistant-wundergroundpws
 Home Assistant custom component sensor for Weather Underground personal weather station users
 
+:+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
+
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.
 
 <p class='note warning'>
