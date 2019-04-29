@@ -1,8 +1,0 @@
-{
-  "domain": "wundergroundpws",
-  "name": "Wundergroundpws",
-  "documentation": "https://github.com/cytech/Home-Assistant-wundergroundpws",
-  "requirements": [],
-  "dependencies": [],
-  "codeowners": []
-}
