@@ -89,7 +89,7 @@ monitored_conditions:
       description: WU PWS reference name
     obsTimeLocal:
       description: Text summary of local observation time
-    UV:
+    uv:
       description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
     winddir:
       description: Wind degrees
