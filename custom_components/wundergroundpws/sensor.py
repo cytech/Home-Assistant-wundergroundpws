@@ -44,7 +44,10 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 conf_file = config.get_default_config_dir() + '/configuration.yaml'
 load_config = config.load_yaml_config_file(conf_file)
 
-UNIT_SYSTEM = load_config['homeassistant']['unit_system']
+try:
+    UNIT_SYSTEM = load_config['homeassistant']['unit_system']
+except KeyError as err:
+    UNIT_SYSTEM = "metric"
 
 if UNIT_SYSTEM == 'imperial':
     TEMPUNIT = TEMP_FAHRENHEIT
