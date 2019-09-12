@@ -27,7 +27,7 @@ from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
 import homeassistant.config as config
 
-_RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&format=json&units={}&apiKey={}'
+_RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&numericPrecision=decimal&format=json&units={}&apiKey={}'
 _RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&{}&format=json&apiKey={}'
 _LOGGER = logging.getLogger(__name__)
 
