@@ -1,6 +1,8 @@
 # Home-Assistant-wundergroundpws
 Home Assistant custom component sensor for Weather Underground personal weather station users
 
+Be aware it ONLY downloads data from Weather Underground, it cannot upload date data to Weather Underground.
+
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.
@@ -40,7 +42,7 @@ Forecast is generated from the HA configured latitude/longitude.
 
 To add Wunderground to your installation, add the following to your `configuration.yaml` file:
 
-```yaml
+```
 # Example configuration.yaml entry
 sensor:
   - platform: wundergroundpws
@@ -50,6 +52,10 @@ sensor:
       - temp
       - dewpt
       - heatIndex
+```
+
+Description of terms and variables:
+
     api_key:
       description: The API key for Weather Underground. See above for details.
       required: true
