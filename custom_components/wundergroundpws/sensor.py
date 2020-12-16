@@ -55,12 +55,14 @@ if UNIT_SYSTEM == 'imperial':
     ALTITUDEUNIT = LENGTH_FEET
     SPEEDUNIT = 'mph'
     PRESSUREUNIT = 'inHg'
+    RATE = 'in/hr'
 else:
     TEMPUNIT = TEMP_CELSIUS
     LENGTHUNIT = LENGTH_MILLIMETERS
     ALTITUDEUNIT = LENGTH_METERS
     SPEEDUNIT = 'kph'
     PRESSUREUNIT = 'mBar'
+    RATE = 'mm/hr'
 
 
 # Helper classes for declaring sensor configurations
@@ -248,7 +250,7 @@ SENSOR_TYPES = {
     'windChill': WUCurrentConditionsSensorConfig(
         'Wind chill', UNIT_SYSTEM, 'windChill', "mdi:thermometer", TEMPUNIT),
     'precipRate': WUCurrentConditionsSensorConfig(
-        'Precipitation Rate', UNIT_SYSTEM, 'precipRate', "mdi:umbrella", LENGTHUNIT),
+        'Precipitation Rate', UNIT_SYSTEM, 'precipRate', "mdi:umbrella", RATE),
     'precipTotal': WUCurrentConditionsSensorConfig(
         'Precipitation Today', UNIT_SYSTEM, 'precipTotal', "mdi:umbrella", LENGTHUNIT),
     'pressure': WUCurrentConditionsSensorConfig(
