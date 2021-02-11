@@ -50,6 +50,9 @@ sensor:
       - temp
       - dewpt
       - heatIndex
+```        
+Description of terms and variables
+```yaml
     api_key:
       description: The API key for Weather Underground. See above for details.
       required: true
@@ -129,17 +132,17 @@ sensor:
           description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Day"
         weather_1n:
           description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Night"      
-    ```
+```
 
-    All the conditions listed above will be updated every 5 minutes.
+All the conditions listed above will be updated every 5 minutes.
 
-    Conditions above marked with <a name="1d">[1d]</a> are daily forecasts. To get forecast for different day, replace the number
-    in `_1d_` part of the sensor name. Valid values are from `1` to `5`.
+Conditions above marked with <a name="1d">[1d]</a> are daily forecasts. To get forecast for different day, replace the number
+in `_1d_` part of the sensor name. Valid values are from `1` to `5`.
 
-    Conditions above marked with <a name="1n">[1n]</a> are nightly forecasts. To get forecast for different night, replace the number
-    in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
+Conditions above marked with <a name="1n">[1n]</a> are nightly forecasts. To get forecast for different night, replace the number
+in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
 
-    ```yaml
+```yaml
     sensor:
       - platform: wunderground
         api_key: YOUR_API_KEY
@@ -166,16 +169,14 @@ sensor:
           - sensor.pws_weather_3n
           - sensor.pws_weather_4d
           - sensor.pws_weather_4n
-    ```
+```
+<p class='note warning'>
+Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
+</p>
 
-    <p class='note warning'>
-    Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
-    </p>
+Note that the Weather Underground sensor is added to the entity_registry, so second and subsequent Personal Weather Station ID (pws_id) will have their monitored conditions suffixed with an index number e.g.
 
-    Note that the Weather Underground sensor is added to the entity_registry, so second and subsequent Personal Weather Station ID (pws_id) will have their monitored conditions suffixed with an index number e.g.
-
-    ```yaml
+```yaml
     - sensor.wupws_weather_1d_metric_2
-    ```
-
-    Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
+```
+Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
