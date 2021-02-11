@@ -33,6 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CONF_ATTRIBUTION = "Data provided by the WUnderground weather service"
 CONF_PWS_ID = 'pws_id'
+CONF_NUMERIC_PRECISION = 'numeric_precision'
 CONF_LANG = 'lang'
 LENGTH_MILLIMETERS = 'mm'
 LENGTH_METERS = 'm'
@@ -200,8 +201,7 @@ SENSOR_TYPES = {
     'humidity': WUSensorConfig(
         'Relative Humidity',
         'observations',
-        value=lambda wu: int(wu.data['observations'][0][
-                                 'humidity']),
+        value=lambda wu: int(wu.data['observations'][0]['humidity'] or 0),
         unit_of_measurement='%',
         icon="mdi:water-percent",
         device_class="humidity"),
@@ -228,8 +228,7 @@ SENSOR_TYPES = {
     'winddir': WUSensorConfig(
         'Wind Direction',
         'observations',
-        value=lambda wu: int(wu.data['observations'][0][
-                                 'winddir']),
+        value=lambda wu: int(wu.data['observations'][0]['winddir'] or 0),
         unit_of_measurement='\u00b0',
         icon="mdi:weather-windy"),
     'today_summary': WUSensorConfig(
@@ -361,6 +360,7 @@ LANG_CODES = [
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_API_KEY): cv.string,
     vol.Required(CONF_PWS_ID): cv.string,
+    vol.Required(CONF_NUMERIC_PRECISION): cv.string,
     vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.All(vol.In(LANG_CODES)),
     vol.Inclusive(CONF_LATITUDE, 'coordinates',
                   'Latitude and longitude must exist together'): cv.latitude,
@@ -377,6 +377,7 @@ async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
     latitude = config.get(CONF_LATITUDE, hass.config.latitude)
     longitude = config.get(CONF_LONGITUDE, hass.config.longitude)
     pws_id = config.get(CONF_PWS_ID)
+    numeric_precision = config.get(CONF_NUMERIC_PRECISION)
 
     if hass.config.units.is_metric:
         unit_system_api = 'm'
@@ -384,7 +385,7 @@ async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
         unit_system_api = 'e'
 
     rest = WUndergroundData(
-        hass, config.get(CONF_API_KEY), pws_id, unit_system_api,
+        hass, config.get(CONF_API_KEY), pws_id, numeric_precision, unit_system_api,
         config.get(CONF_LANG), latitude, longitude)
 
     if pws_id is None:
@@ -517,11 +518,12 @@ class WUndergroundSensor(Entity):
 class WUndergroundData:
     """Get data from WUnderground."""
 
-    def __init__(self, hass, api_key, pws_id, unit_system_api, lang, latitude, longitude):
+    def __init__(self, hass, api_key, pws_id, numeric_precision, unit_system_api, lang, latitude, longitude):
         """Initialize the data object."""
         self._hass = hass
         self._api_key = api_key
         self._pws_id = pws_id
+        self._numeric_precision = numeric_precision
         self._unit_system_api = unit_system_api
         self._lang = 'language={}'.format(lang)
         self._latitude = latitude
@@ -536,7 +538,10 @@ class WUndergroundData:
 
     def _build_url(self, baseurl):
         if baseurl is _RESOURCECURRENT:
-            url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key)
+            if self._numeric_precision == 'none':
+                url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key)
+            else:
+                url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key) + '&numericPrecision=decimal'
         else:
             url = baseurl.format(self._latitude, self._longitude, self._unit_system_api, self._lang, self._api_key)
 
