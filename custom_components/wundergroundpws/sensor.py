@@ -44,10 +44,7 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 conf_file = config.get_default_config_dir() + '/configuration.yaml'
 load_config = config.load_yaml_config_file(conf_file)
 
-try:
-    UNIT_SYSTEM = load_config['homeassistant']['unit_system']
-except KeyError as err:
-    UNIT_SYSTEM = "metric"
+UNIT_SYSTEM = load_config['homeassistant']['unit_system']
 
 if UNIT_SYSTEM == 'imperial':
     TEMPUNIT = TEMP_FAHRENHEIT
@@ -174,7 +171,7 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
             feature='forecast',
             value=(lambda wu: wu.data['daypart'][0][field][period]),
             unit_of_measurement=ha_unit,
-            entity_picture=lambda wu: wu.data['daypart'][0]['iconCode'][period] if not icon else None,
+            entity_picture=lambda wu: str(wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
             icon=icon,
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
