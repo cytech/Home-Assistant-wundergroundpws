@@ -3,6 +3,10 @@ Home Assistant custom component sensor for Weather Underground personal weather 
 
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
+UPGRADE NOTE: numeric_precision must be added to your exisiting configuration.yaml for this sensor.
+This adds the ability to display PWS data as integer or decimal. Valid options are 'none' or 'decimal'.
+See example below.
+
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.
 
 <p class='note warning'>
@@ -46,6 +50,7 @@ sensor:
   - platform: wundergroundpws
     api_key: YOUR_API_KEY
     pws_id: YOUR_STATION_ID
+    numeric_precision: none
     monitored_conditions:
       - temp
       - dewpt
@@ -61,6 +66,10 @@ Description of terms and variables
       description: "You must enter a Personal Weather Station ID. The station id will be used to display current weather conditions."
       required: true
       type: string
+    numeric_precision:
+        description: Required - Show PWS data as integer or decimal
+        required: true - Value of 'none' or 'decimal'
+        type: string
     lang:
       description: Specify the language that the API returns. The current list of all Wunderground language codes is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (en-US).
       required: false
@@ -157,7 +166,6 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
           - weather_4d
           - weather_4n
 
-    group:
       daily_forecast:
         name: Daily Forecast
         entities:
