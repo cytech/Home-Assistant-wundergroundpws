@@ -7,38 +7,6 @@ UPGRADE NOTE: numeric_precision must be added to your exisiting configuration.ya
 This adds the ability to display PWS data as integer or decimal. Valid options are 'none' or 'decimal'.
 See example below.
 
-**NOTE:**
-I created this to work with my Home Assistant Setup which is Home Assistant Core in a venv on a Raspberry Pi.
-This fails on other types of Home Assistant installations. Per issues reported (issue #1), you will need to modify the sensor.py for these other installation types.
-See Issue #46
-
-**Home Assistant Operating System:**
-
-   edit sensor.py in custom_components/wundergroundpws and change line 46 from
-
-`      load_config = config.load_yaml_config_file(conf_file)
-`   
-to
-
-`      load_config = config.load_yaml_config_file('/home/homeassistant/configuration.yaml')
-`
-
-**Home Assistant Container (Hass.IO):**
-
-   edit sensor.py in custom_components/wundergroundpws and change line 46 from
-
-`      load_config = config.load_yaml_config_file(conf_file)
-`   
-to
-
-`      load_config = config.load_yaml_config_file('/config/configuration.yaml')
-`
-
-**Home Assistant Supervised:**
-
-???
-
-
 
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.
 
