@@ -1,3 +1,7 @@
+2021-02-24
+
+copies of weathericons (PR#30)
+
 2021-02-21
 
 merge PR#50
