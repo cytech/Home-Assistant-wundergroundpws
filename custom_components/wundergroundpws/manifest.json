@@ -1,7 +1,7 @@
 {
   "domain": "wundergroundpws",
   "name": "Wundergroundpws",
-  "version": "0.92",
+  "version": "0.92.0",
   "config_flow": true,
   "documentation": "https://github.com/cytech/Home-Assistant-wundergroundpws",
   "issue_tracker": "https://github.com/cytech/Home-Assistant-wundergroundpws/issues/",
