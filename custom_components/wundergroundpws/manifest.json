@@ -6,7 +6,5 @@
   "issue_tracker": "https://github.com/cytech/Home-Assistant-wundergroundpws/issues/",
   "requirements": [],
   "dependencies": [],
-  "codeowners": [
-    "@cytech"
-  ],
+  "codeowners": ["@cytech"]
 }
