@@ -3,6 +3,8 @@ Home Assistant custom component sensor for Weather Underground personal weather 
 
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
+UPGRADE NOTE v0.8.0: Requires Home Assistant v 2021.8 or later  
+
 UPGRADE NOTE: numeric_precision must be added to your exisiting configuration.yaml for this sensor.
 This adds the ability to display PWS data as integer or decimal. Valid options are 'none' or 'decimal'.
 See example below.

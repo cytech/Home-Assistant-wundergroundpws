@@ -19,13 +19,16 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
     CONF_MONITORED_CONDITIONS, CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE,
     TEMP_FAHRENHEIT, TEMP_CELSIUS, LENGTH_INCHES,
-    LENGTH_FEET, ATTR_ATTRIBUTION)
+    LENGTH_FEET, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_MILES_PER_HOUR, SPEED_KILOMETERS_PER_HOUR,
+    PERCENTAGE, PRESSURE_INHG, PRESSURE_MBAR, PRECIPITATION_INCHES_PER_HOUR, PRECIPITATION_MILLIMETERS_PER_HOUR,
+    ATTR_ATTRIBUTION)
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
-import homeassistant.config as config
+
+# import homeassistant.config as config
 
 _RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&format=json&units={}&apiKey={}'
 _RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&{}&format=json&apiKey={}'
@@ -35,8 +38,6 @@ CONF_ATTRIBUTION = "Data provided by the WUnderground weather service"
 CONF_PWS_ID = 'pws_id'
 CONF_NUMERIC_PRECISION = 'numeric_precision'
 CONF_LANG = 'lang'
-LENGTH_MILLIMETERS = 'mm'
-LENGTH_METERS = 'm'
 
 DEFAULT_LANG = 'en-US'
 
@@ -48,13 +49,13 @@ ALTITUDEUNIT = 2
 SPEEDUNIT = 3
 PRESSUREUNIT = 4
 RATE = 5
+PERCENTAGEUNIT = 6
 
 
 # Helper classes for declaring sensor configurations
 
 class WUSensorConfig:
     """WU Sensor Configuration.
-
     defines basic HA properties of the weather sensor and
     stores callbacks that can parse sensor values out of
     the json data received by WU API.
@@ -65,7 +66,6 @@ class WUSensorConfig:
                  icon="mdi:gauge", device_state_attributes=None,
                  device_class=None):
         """Constructor.
-
         Args:
             friendly_name (string|func): Friendly name
             feature (string): WU feature. See:
@@ -121,20 +121,16 @@ class WUCurrentConditionsSensorConfig(WUSensorConfig):
 class WUDailyTextForecastSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for daily text forecasts."""
 
-    def __init__(self, period, field=None, unit_of_measurement=None):
+    def __init__(self, period):
         """Constructor.
-
         Args:
             period (int): forecast period number
-            field (string):  field name to use as value
-            unit_of_measurement(string): unit of measurement
         """
         super().__init__(
             friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period],
             feature='forecast',
             value=lambda wu: wu.data['daypart'][0]['narrative'][period],
             entity_picture=lambda wu: '/local/wupws_icons/' + str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
-            unit_of_measurement=unit_of_measurement,
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
             }
@@ -145,20 +141,20 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for daily simpleforecasts."""
 
     def __init__(self, friendly_name, period, field,
-                 ha_unit=None, icon=None, device_class=None):
+                 unit_of_measurement=None, icon=None, device_class=None):
         """Constructor.
 
         Args:
             period (int): forecast period number
             field (string): field name to use as value
-            ha_unit (string): corresponding unit in home assistant
+            unit_of_measurement (string): corresponding unit in home assistant
             title (string): friendly_name of the sensor
         """
         super().__init__(
             friendly_name=friendly_name,
             feature='forecast',
             value=(lambda wu: wu.data['daypart'][0][field][period]),
-            unit_of_measurement=ha_unit,
+            unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement],
             entity_picture=lambda wu: str(wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
             icon=icon,
             device_state_attributes={
@@ -174,56 +170,44 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
 SENSOR_TYPES = {
     # current
     'neighborhood': WUSensorConfig(
-        'Neighborhood',
-        'observations',
-        value=lambda wu: wu.data['observations'][0][
-            'neighborhood'],
+        'Neighborhood', 'observations',
+        value=lambda wu: wu.data['observations'][0]['neighborhood'],
         icon="mdi:map-marker"),
     'obsTimeLocal': WUSensorConfig(
-        'Local Observation Time',
-        'observations',
-        value=lambda wu: wu.data['observations'][0][
-            'obsTimeLocal'],
+        'Local Observation Time', 'observations',
+        value=lambda wu: wu.data['observations'][0]['obsTimeLocal'],
         icon="mdi:clock"),
     'humidity': WUSensorConfig(
-        'Relative Humidity',
-        'observations',
+        'Relative Humidity', 'observations',
         value=lambda wu: int(wu.data['observations'][0]['humidity'] or 0),
         unit_of_measurement='%',
         icon="mdi:water-percent",
         device_class="humidity"),
     'stationID': WUSensorConfig(
-        'Station ID',
-        'observations',
-        value=lambda wu: wu.data['observations'][0][
-            'stationID'],
+        'Station ID', 'observations',
+        value=lambda wu: wu.data['observations'][0]['stationID'],
         icon="mdi:home"),
     'solarRadiation': WUSensorConfig(
-        'Solar Radiation',
-        'observations',
-        value=lambda wu: str(wu.data['observations'][0][
-                                 'solarRadiation']),
+        'Solar Radiation', 'observations',
+        value=lambda wu: str(wu.data['observations'][0]['solarRadiation']),
         unit_of_measurement='w/m2',
         icon="mdi:weather-sunny"),
     'uv': WUSensorConfig(
-        'UV',
-        'observations',
-        value=lambda wu: str(wu.data['observations'][0][
-                                 'uv']),
+        'UV', 'observations',
+        value=lambda wu: str(wu.data['observations'][0]['uv']),
         unit_of_measurement='',
         icon="mdi:sunglasses", ),
     'winddir': WUSensorConfig(
-        'Wind Direction',
-        'observations',
+        'Wind Direction', 'observations',
         value=lambda wu: int(wu.data['observations'][0]['winddir'] or 0),
         unit_of_measurement='\u00b0',
         icon="mdi:weather-windy"),
     'today_summary': WUSensorConfig(
-        'Today Summary',
-        'observations',
+        'Today Summary', 'observations',
         value=lambda wu: str(wu.data['narrative'][0]),
-        unit_of_measurement='\u00b0',
+        unit_of_measurement='',
         icon="mdi:gauge"),
+    # current conditions
     'elev': WUCurrentConditionsSensorConfig(
         'Elevation', 'elev', 'mdi:elevation-rise', ALTITUDEUNIT),
     'dewpt': WUCurrentConditionsSensorConfig(
@@ -318,19 +302,19 @@ SENSOR_TYPES = {
         "Precipitation Intensity in 5 Days", 8, 'qpf', LENGTHUNIT,
         "mdi:umbrella"),
     'precip_chance_1d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability Today", 0, "precipChance", "%",
+        "Precipitation Probability Today", 0, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_2d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability Tomorrow", 2, "precipChance", "%",
+        "Precipitation Probability Tomorrow", 2, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_3d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 3 Days", 4, "precipChance", "%",
+        "Precipitation Probability in 3 Days", 4, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_4d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 4 Days", 6, "precipChance", "%",
+        "Precipitation Probability in 4 Days", 6, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_5d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 5 Days", 8, "precipChance", "%",
+        "Precipitation Probability in 5 Days", 8, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
 }
 
@@ -374,7 +358,7 @@ async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
         unit_system = 'imperial'
 
     rest = WUndergroundData(
-        hass, config.get(CONF_API_KEY), pws_id, numeric_precision, unit_system_api, unit_system, 
+        hass, config.get(CONF_API_KEY), pws_id, numeric_precision, unit_system_api, unit_system,
         config.get(CONF_LANG), latitude, longitude)
 
     if pws_id is None:
@@ -507,7 +491,8 @@ class WUndergroundSensor(Entity):
 class WUndergroundData:
     """Get data from WUnderground."""
 
-    def __init__(self, hass, api_key, pws_id, numeric_precision, unit_system_api, unit_system, lang, latitude, longitude):
+    def __init__(self, hass, api_key, pws_id, numeric_precision, unit_system_api, unit_system, lang, latitude,
+                 longitude):
         """Initialize the data object."""
         self._hass = hass
         self._api_key = api_key
@@ -522,11 +507,13 @@ class WUndergroundData:
         self._features = set()
         self.data = None
         self._session = async_get_clientsession(self._hass)
-        
+
         if unit_system_api == 'm':
-            self.units_of_measurement = (TEMP_CELSIUS, LENGTH_MILLIMETERS, LENGTH_METERS, 'kph', 'mBar', 'mm/hr')
+            self.units_of_measurement = (TEMP_CELSIUS, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_KILOMETERS_PER_HOUR,
+                                         PRESSURE_MBAR, PRECIPITATION_MILLIMETERS_PER_HOUR, PERCENTAGE)
         else:
-            self.units_of_measurement = (TEMP_FAHRENHEIT, LENGTH_INCHES, LENGTH_FEET, 'mph', 'inHg', 'in/hr')
+            self.units_of_measurement = (TEMP_FAHRENHEIT, LENGTH_INCHES, LENGTH_FEET, SPEED_MILES_PER_HOUR,
+                                         PRESSURE_INHG, PRECIPITATION_INCHES_PER_HOUR, PERCENTAGE)
 
     def request_feature(self, feature):
         """Register feature to be fetched from WU API."""

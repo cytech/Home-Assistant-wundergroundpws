@@ -1,3 +1,7 @@
+2021-08-03  
+v0.8.0 requires Home Assistant 2021.8 or later  
+fix missing forecast unit_of_measure, issue #70  
+
 2021-02-24
 
 copies of weathericons (PR#30)
