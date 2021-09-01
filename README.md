@@ -1,4 +1,7 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 # Home-Assistant-wundergroundpws
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+
 Home Assistant custom component sensor for Weather Underground personal weather station users
 
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
