@@ -6,5 +6,6 @@
   "issue_tracker": "https://github.com/cytech/Home-Assistant-wundergroundpws/issues/",
   "requirements": [],
   "dependencies": [],
-  "codeowners": ["@cytech"]
+  "codeowners": ["@cytech"],
+   "iot_class": "cloud_polling"
 }
