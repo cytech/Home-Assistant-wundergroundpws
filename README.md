@@ -34,7 +34,11 @@ To get a free API key:
 
 Please consider this when using the following information.
 
-To Install, copy the custom_components directory into your .homeassistant directory
+To install, add this repository as custom repository for HACS and install the Weather Underground Personal Weather Station integration and copy the www directory into your .homeassistant directory.
+
+or 
+
+copy the custom_components directory into your .homeassistant directory
 and the www directory into your .homeassistant directory.
 
 or
@@ -44,7 +48,7 @@ and the contents of the www directory into an existing www directory in your .ho
 
 Current conditions are generated from the wundergroundpws configured pws_id.
 
-Forecast is generated from the HA configured latitude/longitude.
+The forecast is generated from the HA configured latitude/longitude.
 </p>
 
 
