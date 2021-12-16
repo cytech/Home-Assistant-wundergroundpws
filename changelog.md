@@ -1,3 +1,10 @@
+v0.8.1  
+2021-12-16
+fixes for 2022.X deprecations:  
+apply pr #75 - Drop loop= kwarg from async_timeout.timeout  
+replace device_state_attributes with extra_state_attributes in sensor.py  
+
+v0.8.0
 2021-08-03  
 v0.8.0 requires Home Assistant 2021.8 or later  
 fix missing forecast unit_of_measure, issue #70  
