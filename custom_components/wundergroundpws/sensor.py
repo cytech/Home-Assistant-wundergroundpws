@@ -202,6 +202,11 @@ SENSOR_TYPES = {
         value=lambda wu: int(wu.data['observations'][0]['winddir'] or 0),
         unit_of_measurement='\u00b0',
         icon="mdi:weather-windy"),
+    'windDirectionName': WUSensorConfig(
+        'Wind Direction', 'observations',
+        value=lambda wu: wind_direction_to_friendly_name(int(wu.data['observations'][0]['winddir'] or -1)),
+        unit_of_measurement='',
+        icon="mdi:weather-windy"),
     'today_summary': WUSensorConfig(
         'Today Summary', 'observations',
         value=lambda wu: str(wu.data['narrative'][0]),
@@ -317,6 +322,43 @@ SENSOR_TYPES = {
         "Precipitation Probability in 5 Days", 8, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
 }
+
+def wind_direction_to_friendly_name(argument):
+    if (argument < 0):
+        return ""
+    if 348.75 <= argument or 11.25 > argument:
+        return "N"
+    if 11.25 <= argument < 33.75:
+        return "NNE"
+    if 33.75 <= argument < 56.25:
+        return "NE"
+    if 56.25 <= argument < 78.75:
+        return "ENE"
+    if 78.75 <= argument < 101.25:
+        return "E"
+    if 101.25 <= argument < 123.75:
+        return "ESE"
+    if 123.75 <= argument < 146.25:
+        return "SE"
+    if 146.25 <= argument < 168.75:
+        return "SSE"
+    if 168.75 <= argument < 191.25:
+        return "S"
+    if 191.25 <= argument < 213.75:
+        return "SSW"
+    if 213.75 <= argument < 236.25:
+        return "SW"
+    if 236.25 <= argument < 258.75:
+        return "WSW"
+    if 258.75 <= argument < 281.25:
+        return "W"
+    if 281.25 <= argument < 303.75:
+        return "WNW"
+    if 303.75 <= argument < 326.25:
+        return "NW"
+    if 326.25 <= argument < 348.75:
+        return "NNW"
+    return ""
 
 # Language Supported Codes
 LANG_CODES = [
