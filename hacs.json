@@ -1,6 +1,7 @@
 {
 "name": "Weather Underground Personal Weather Station",
 "domains": ["sensor"],
+"version": "0.8.1",
 "homeassistant": "2021.8",
 "render_readme": true,
 "iot_class": "Cloud Polling",
