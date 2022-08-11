@@ -442,7 +442,7 @@ class WUndergroundSensor(Entity):
         return self._state
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         return self._attributes
 
@@ -535,7 +535,7 @@ class WUndergroundData:
         """Get the latest data from WUnderground."""
         headers = {'Accept-Encoding': 'gzip'}
         try:
-            with async_timeout.timeout(10, loop=self._hass.loop):
+            with async_timeout.timeout(10):
                 response = await self._session.get(self._build_url(_RESOURCECURRENT), headers=headers)
             result_current = await response.json()
 
@@ -546,7 +546,7 @@ class WUndergroundData:
 
             if result_current is None:
                 raise ValueError('NO CURRENT RESULT')
-            with async_timeout.timeout(10, loop=self._hass.loop):
+            with async_timeout.timeout(10):
                 response = await self._session.get(self._build_url(_RESOURCEFORECAST), headers=headers)
             result_forecast = await response.json()
 

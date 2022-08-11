@@ -6,7 +6,7 @@ Home Assistant custom component sensor for Weather Underground personal weather 
 
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
-UPGRADE NOTE v0.8.0: Requires Home Assistant v 2021.8 or later  
+UPGRADE NOTE v0.8.X: Requires Home Assistant v 2021.8 or later  
 
 UPGRADE NOTE: numeric_precision must be added to your exisiting configuration.yaml for this sensor.
 This adds the ability to display PWS data as integer or decimal. Valid options are 'none' or 'decimal'.
@@ -163,7 +163,7 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
 
 ```yaml
     sensor:
-      - platform: wunderground
+      - platform: wundergroundpws
         api_key: YOUR_API_KEY
         pws_id: YOUR_STATION_ID
         monitored_conditions:
@@ -176,17 +176,6 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
           - weather_4d
           - weather_4n
 
-      daily_forecast:
-        name: Daily Forecast
-        entities:
-          - sensor.pws_weather_1d
-          - sensor.pws_weather_1n
-          - sensor.pws_weather_2d
-          - sensor.pws_weather_2n
-          - sensor.pws_weather_3d
-          - sensor.pws_weather_3n
-          - sensor.pws_weather_4d
-          - sensor.pws_weather_4n
 ```
 <p class='note warning'>
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
