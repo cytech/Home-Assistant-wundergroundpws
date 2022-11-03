@@ -3,6 +3,8 @@ Home Assistant custom component sensor for Weather Underground personal weather 
 
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
+UPGRADE NOTE v0.8.3: Requires Home Assistant v 2022.11 or later
+
 UPGRADE NOTE v0.8.X: Requires Home Assistant v 2021.8 or later  
 
 UPGRADE NOTE: numeric_precision must be added to your exisiting configuration.yaml for this sensor.
@@ -107,6 +109,8 @@ Description of terms and variables
           description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
         winddir:
           description: Wind degrees
+        windDirectionName:
+          description: Wind cardinal direction (N,S,E,W, etc)
         humidity:
           description: Relative humidity                  
         dewpt:
