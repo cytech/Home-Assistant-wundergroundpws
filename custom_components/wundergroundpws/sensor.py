@@ -27,6 +27,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
+from homeassistant.util.unit_system import METRIC_SYSTEM
 
 # import homeassistant.config as config
 
@@ -350,7 +351,7 @@ async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
     pws_id = config.get(CONF_PWS_ID)
     numeric_precision = config.get(CONF_NUMERIC_PRECISION)
 
-    if hass.config.units.is_metric:
+    if hass.config.units is METRIC_SYSTEM:
         unit_system_api = 'm'
         unit_system = 'metric'
     else:

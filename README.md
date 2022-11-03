@@ -168,7 +168,6 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
           - weather_3n
           - weather_4d
           - weather_4n
-
 ```
 <p class='note warning'>
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
