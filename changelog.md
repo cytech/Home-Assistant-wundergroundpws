@@ -1,3 +1,10 @@
+v0.8.3
+merge PR #100 Add sensor for wind direction as friendly name
+
+v0.8.2
+2022-11-03
+fix for HASS 2023.1 deprecation is_metric
+
 v0.8.1  
 2021-12-16
 fixes for 2022.X deprecations:  
