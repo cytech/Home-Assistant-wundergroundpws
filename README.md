@@ -40,6 +40,8 @@ or
 
 copy the contents of the custom_components into an existing custom_components directory in your .homeassistant directory
 and the contents of the www directory into an existing www directory in your .homeassistant directory.
+    
+Restart your home assistant to make him register the new sensor before proceeding with the configuration.
 
 Current conditions are generated from the wundergroundpws configured pws_id.
 
