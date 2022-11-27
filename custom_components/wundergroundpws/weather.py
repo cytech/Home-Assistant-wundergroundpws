@@ -110,7 +110,9 @@ class WUWeather(WeatherEntity):
     @property
     def pressure(self) -> float:
         """Return the pressure in native units."""
-        return self._rest.get_condition(FIELD_CONDITION_PRESSURE) / 100
+        pressure =  self._rest.get_condition(FIELD_CONDITION_PRESSURE)
+        if pressure is not None:
+            return self._rest.get_condition(FIELD_CONDITION_PRESSURE) / 100
 
     @property
     def pressure_unit(self) -> str:
