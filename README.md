@@ -58,13 +58,11 @@ To add Wunderground to your installation, add the following to your `configurati
 
 ```yaml
 # Example configuration.yaml entry
-wundergroundpws:
-  api_key: YOUR_API_KEY
-  pws_id: YOUR_STATION_ID
-  numeric_precision: none
-
 sensor:
   - platform: wundergroundpws
+    api_key: YOUR_API_KEY
+    pws_id: YOUR_STATION_ID
+    numeric_precision: none
     monitored_conditions:
       - temp
       - dewpt
