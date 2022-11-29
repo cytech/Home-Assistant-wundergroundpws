@@ -4,49 +4,56 @@ Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
 https://github.com/cytech/Home-Assistant-wundergroundpws
 """
-from .const import (
-    CONF_ATTRIBUTION,
-    CONF_PWS_ID,
-    CONF_NUMERIC_PRECISION,
-    CONF_LANG,
-
-    DOMAIN,
-
-    ENTRY_PWS_ID,
-    ENTRY_WEATHER_COORDINATOR,
-
-    TEMPUNIT,
-    LENGTHUNIT,
-    ALTITUDEUNIT,
-    SPEEDUNIT,
-    PRESSUREUNIT,
-    RATE,
-    PERCENTAGEUNIT,
-)
 import asyncio
+from datetime import timedelta
 import logging
 import re
 
+import aiohttp
+import async_timeout
 import voluptuous as vol
 
 from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.components import sensor
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS,
+    CONF_MONITORED_CONDITIONS, CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE,
+    TEMP_FAHRENHEIT, TEMP_CELSIUS, LENGTH_INCHES,
+    LENGTH_FEET, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_MILES_PER_HOUR, SPEED_KILOMETERS_PER_HOUR,
+    PERCENTAGE, PRESSURE_INHG, PRESSURE_MBAR, PRECIPITATION_INCHES_PER_HOUR, PRECIPITATION_MILLIMETERS_PER_HOUR,
     ATTR_ATTRIBUTION)
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
-
-from .wunderground_data import WUndergroundData
+from homeassistant.util.unit_system import METRIC_SYSTEM
 
 # import homeassistant.config as config
 
+_RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&format=json&units={}&apiKey={}'
+_RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&{}&format=json&apiKey={}'
 _LOGGER = logging.getLogger(__name__)
+
+CONF_ATTRIBUTION = "Data provided by the WUnderground weather service"
+CONF_PWS_ID = 'pws_id'
+CONF_NUMERIC_PRECISION = 'numeric_precision'
+CONF_LANG = 'lang'
+
+DEFAULT_LANG = 'en-US'
+
+MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
+
+TEMPUNIT = 0
+LENGTHUNIT = 1
+ALTITUDEUNIT = 2
+SPEEDUNIT = 3
+PRESSUREUNIT = 4
+RATE = 5
+PERCENTAGEUNIT = 6
 
 
 # Helper classes for declaring sensor configurations
-
 
 class WUSensorConfig:
     """WU Sensor Configuration.
@@ -124,8 +131,7 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
             friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period],
             feature='forecast',
             value=lambda wu: wu.data['daypart'][0]['narrative'][period],
-            entity_picture=lambda wu: '/local/wupws_icons/' +
-            str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
+            entity_picture=lambda wu: '/local/wupws_icons/' + str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
             }
@@ -150,8 +156,7 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
             feature='forecast',
             value=(lambda wu: wu.data['daypart'][0][field][period]),
             unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement],
-            entity_picture=lambda wu: str(
-                wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
+            entity_picture=lambda wu: str(wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
             icon=icon,
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
@@ -200,8 +205,7 @@ SENSOR_TYPES = {
         icon="mdi:weather-windy"),
     'windDirectionName': WUSensorConfig(
         'Wind Direction', 'observations',
-        value=lambda wu: wind_direction_to_friendly_name(
-            int(wu.data['observations'][0]['winddir'] or -1)),
+        value=lambda wu: wind_direction_to_friendly_name(int(wu.data['observations'][0]['winddir'] or -1)),
         unit_of_measurement='',
         icon="mdi:weather-windy"),
     'today_summary': WUSensorConfig(
@@ -320,7 +324,6 @@ SENSOR_TYPES = {
         "mdi:umbrella"),
 }
 
-
 def wind_direction_to_friendly_name(argument):
     if (argument < 0):
         return ""
@@ -358,8 +361,25 @@ def wind_direction_to_friendly_name(argument):
         return "NNW"
     return ""
 
+# Language Supported Codes
+LANG_CODES = [
+    'ar-AE', 'az-AZ', 'bg-BG', 'bn-BD', 'bn-IN', 'bs-BA', 'ca-ES', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-GB', 'en-IN',
+    'en-US', 'es-AR', 'es-ES', 'es-LA', 'es-MX', 'es-UN', 'es-US', 'et-EE', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR', 'gu-IN',
+    'he-IL', 'hi-IN', 'hr-HR', 'hu-HU', 'in-ID', 'is-IS', 'it-IT', 'iw-IL', 'ja-JP', 'jv-ID', 'ka-GE', 'kk-KZ', 'kn-IN',
+    'ko-KR', 'lt-LT', 'lv-LV', 'mk-MK', 'mn-MN', 'ms-MY', 'nl-NL', 'no-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'ru-RU',
+    'si-LK', 'sk-SK', 'sl-SI', 'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'tg-TJ',
+    'th-TH', 'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
+]
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_API_KEY): cv.string,
+    vol.Required(CONF_PWS_ID): cv.string,
+    vol.Required(CONF_NUMERIC_PRECISION): cv.string,
+    vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.All(vol.In(LANG_CODES)),
+    vol.Inclusive(CONF_LATITUDE, 'coordinates',
+                  'Latitude and longitude must exist together'): cv.latitude,
+    vol.Inclusive(CONF_LONGITUDE, 'coordinates',
+                  'Latitude and longitude must exist together'): cv.longitude,
     vol.Required(CONF_MONITORED_CONDITIONS):
         vol.All(cv.ensure_list, vol.Length(min=1), [vol.In(SENSOR_TYPES)])
 })
@@ -367,18 +387,36 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
                                async_add_entities, discovery_info=None):
-    rest = hass.data[DOMAIN][ENTRY_WEATHER_COORDINATOR]
+    """Set up the WUnderground sensor."""
+    latitude = config.get(CONF_LATITUDE, hass.config.latitude)
+    longitude = config.get(CONF_LONGITUDE, hass.config.longitude)
+    pws_id = config.get(CONF_PWS_ID)
+    numeric_precision = config.get(CONF_NUMERIC_PRECISION)
 
-    #     unique_id_base = "@{:06f},{:06f}".format(longitude, latitude)
-    # else:
-    #     # Manually specified weather station, use that for unique_id
-    #     unique_id_base = pws_id
-    unique_id_base = hass.data[DOMAIN][ENTRY_PWS_ID]
+    if hass.config.units is METRIC_SYSTEM:
+        unit_system_api = 'm'
+        unit_system = 'metric'
+    else:
+        unit_system_api = 'e'
+        unit_system = 'imperial'
+
+    rest = WUndergroundData(
+        hass, config.get(CONF_API_KEY), pws_id, numeric_precision, unit_system_api, unit_system,
+        config.get(CONF_LANG), latitude, longitude)
+
+    if pws_id is None:
+        unique_id_base = "@{:06f},{:06f}".format(longitude, latitude)
+    else:
+        # Manually specified weather station, use that for unique_id
+        unique_id_base = pws_id
     sensors = []
-
     for variable in config[CONF_MONITORED_CONDITIONS]:
         sensors.append(WUndergroundSensor(hass, rest, variable,
                                           unique_id_base))
+
+    await rest.async_update()
+    if not rest.data:
+        raise PlatformNotReady
 
     async_add_entities(sensors, True)
 
@@ -491,3 +529,77 @@ class WUndergroundSensor(Entity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return self._unique_id
+
+
+class WUndergroundData:
+    """Get data from WUnderground."""
+
+    def __init__(self, hass, api_key, pws_id, numeric_precision, unit_system_api, unit_system, lang, latitude,
+                 longitude):
+        """Initialize the data object."""
+        self._hass = hass
+        self._api_key = api_key
+        self._pws_id = pws_id
+        self._numeric_precision = numeric_precision
+        self._unit_system_api = unit_system_api
+        self.unit_system = unit_system
+        self.units_of_measurement = None
+        self._lang = 'language={}'.format(lang)
+        self._latitude = latitude
+        self._longitude = longitude
+        self._features = set()
+        self.data = None
+        self._session = async_get_clientsession(self._hass)
+
+        if unit_system_api == 'm':
+            self.units_of_measurement = (TEMP_CELSIUS, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_KILOMETERS_PER_HOUR,
+                                         PRESSURE_MBAR, PRECIPITATION_MILLIMETERS_PER_HOUR, PERCENTAGE)
+        else:
+            self.units_of_measurement = (TEMP_FAHRENHEIT, LENGTH_INCHES, LENGTH_FEET, SPEED_MILES_PER_HOUR,
+                                         PRESSURE_INHG, PRECIPITATION_INCHES_PER_HOUR, PERCENTAGE)
+
+    def request_feature(self, feature):
+        """Register feature to be fetched from WU API."""
+        self._features.add(feature)
+
+    def _build_url(self, baseurl):
+        if baseurl is _RESOURCECURRENT:
+            if self._numeric_precision == 'none':
+                url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key)
+            else:
+                url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key) + '&numericPrecision=decimal'
+        else:
+            url = baseurl.format(self._latitude, self._longitude, self._unit_system_api, self._lang, self._api_key)
+
+        return url
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update(self):
+        """Get the latest data from WUnderground."""
+        headers = {'Accept-Encoding': 'gzip'}
+        try:
+            with async_timeout.timeout(10):
+                response = await self._session.get(self._build_url(_RESOURCECURRENT), headers=headers)
+            result_current = await response.json()
+
+            # need to check specific new api errors
+            # if "error" in result['response']:
+            #     raise ValueError(result['response']["error"]["description"])
+            # _LOGGER.debug('result_current' + str(result_current))
+
+            if result_current is None:
+                raise ValueError('NO CURRENT RESULT')
+            with async_timeout.timeout(10):
+                response = await self._session.get(self._build_url(_RESOURCEFORECAST), headers=headers)
+            result_forecast = await response.json()
+
+            if result_forecast is None:
+                raise ValueError('NO FORECAST RESULT')
+
+            result = {**result_current, **result_forecast}
+
+            self.data = result
+        except ValueError as err:
+            _LOGGER.error("Check WUnderground API %s", err.args)
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error fetching WUnderground data: %s", repr(err))
