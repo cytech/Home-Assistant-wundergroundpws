@@ -56,6 +56,9 @@ wundergroundpws:
   pws_id: YOUR_STATION_ID
   numeric_precision: none
 
+weather:
+  - platform: wundergroundpws
+
 sensor:
   - platform: wundergroundpws
     monitored_conditions:
