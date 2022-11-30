@@ -99,7 +99,7 @@ class WUWeather(WeatherEntity):
         self._rest = wunderground_data
 
     @property
-    def temperature(self) -> float:
+    def native_temperature(self) -> float:
         """
         Return the platform temperature in native units
         (i.e. not converted).
@@ -107,19 +107,19 @@ class WUWeather(WeatherEntity):
         return self._rest.get_condition(FIELD_CONDITION_TEMP)
 
     @property
-    def temperature_unit(self) -> str:
+    def native_temperature_unit(self) -> str:
         """Return the native unit of measurement for temperature."""
         return self._rest.units_of_measurement[TEMPUNIT]
 
     @property
-    def pressure(self) -> float:
+    def native_pressure(self) -> float:
         """Return the pressure in native units."""
         pressure = self._rest.get_condition(FIELD_CONDITION_PRESSURE)
         if pressure is not None:
             return self._rest.get_condition(FIELD_CONDITION_PRESSURE) / 100
 
     @property
-    def pressure_unit(self) -> str:
+    def native_pressure_unit(self) -> str:
         """Return the native unit of measurement for pressure."""
         return self._rest.units_of_measurement[PRESSUREUNIT]
 
@@ -129,12 +129,12 @@ class WUWeather(WeatherEntity):
         return self._rest.get_condition(FIELD_CONDITION_HUMIDITY)
 
     @property
-    def wind_speed(self) -> float:
+    def native_wind_speed(self) -> float:
         """Return the wind speed in native units."""
         return self._rest.get_condition(FIELD_CONDITION_WINDSPEED)
 
     @property
-    def wind_speed_unit(self) -> str:
+    def native_wind_speed_unit(self) -> str:
         """Return the native unit of measurement for wind speed."""
         return self._rest.units_of_measurement[SPEEDUNIT]
 
@@ -149,12 +149,12 @@ class WUWeather(WeatherEntity):
         return self._attr_ozone
 
     @property
-    def visibility(self) -> float:
+    def native_visibility(self) -> float:
         """Return the visibility in native units."""
         return self._attr_visibility
 
     @property
-    def visibility_unit(self) -> str:
+    def native_visibility_unit(self) -> str:
         """Return the native unit of measurement for visibility."""
         return self._attr_visibility_unit
 
@@ -198,7 +198,7 @@ class WUWeather(WeatherEntity):
         return forecast
 
     @property
-    def precipitation_unit(self) -> str:
+    def native_precipitation_unit(self) -> str:
         """
         Return the native unit of measurement for accumulated precipitation.
         """
