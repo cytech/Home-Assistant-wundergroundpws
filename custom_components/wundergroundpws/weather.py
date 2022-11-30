@@ -4,33 +4,6 @@ Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
 https://github.com/cytech/Home-Assistant-wundergroundpws
 """
-import asyncio
-import logging
-
-from homeassistant.components.weather import (
-    ATTR_FORECAST_CONDITION,
-    ATTR_FORECAST_PRECIPITATION,
-    ATTR_FORECAST_PRECIPITATION_PROBABILITY,
-    ATTR_FORECAST_PRESSURE,
-    ATTR_FORECAST_TEMP,
-    ATTR_FORECAST_TEMP_LOW,
-    ATTR_FORECAST_TIME,
-    ATTR_FORECAST_WIND_BEARING,
-    ATTR_FORECAST_WIND_SPEED,
-    WeatherEntity,
-    Forecast,
-)
-from homeassistant.const import PRECISION_TENTHS, PRECISION_WHOLE, TEMP_CELSIUS
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import HomeAssistantType, ConfigType
-
-from .wunderground_data import WUndergroundData
-
-_LOGGER = logging.getLogger(__name__)
-
 from .const import (
     DOMAIN,
     MANUFACTURER,
@@ -62,6 +35,33 @@ from .const import (
     FIELD_FORECAST_WINDDIRECTIONCARDINAL,
     FIELD_FORECAST_WINDSPEED,
 )
+import asyncio
+import logging
+
+from homeassistant.components.weather import (
+    ATTR_FORECAST_CONDITION,
+    ATTR_FORECAST_PRECIPITATION,
+    ATTR_FORECAST_PRECIPITATION_PROBABILITY,
+    ATTR_FORECAST_PRESSURE,
+    ATTR_FORECAST_TEMP,
+    ATTR_FORECAST_TEMP_LOW,
+    ATTR_FORECAST_TIME,
+    ATTR_FORECAST_WIND_BEARING,
+    ATTR_FORECAST_WIND_SPEED,
+    WeatherEntity,
+    Forecast,
+)
+from homeassistant.const import PRECISION_TENTHS, PRECISION_WHOLE, TEMP_CELSIUS
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import HomeAssistantType, ConfigType
+
+from .wunderground_data import WUndergroundData
+
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_platform(
     hass: HomeAssistant,
@@ -77,6 +77,7 @@ async def async_setup_platform(
 
     wu_weather = WUWeather(unique_id, unique_id, rest)
     async_add_entities([wu_weather], False)
+
 
 class WUWeather(WeatherEntity):
 
@@ -99,7 +100,10 @@ class WUWeather(WeatherEntity):
 
     @property
     def temperature(self) -> float:
-        """Return the platform temperature in native units (i.e. not converted)."""
+        """
+        Return the platform temperature in native units
+        (i.e. not converted).
+        """
         return self._rest.get_condition(FIELD_CONDITION_TEMP)
 
     @property
@@ -110,7 +114,7 @@ class WUWeather(WeatherEntity):
     @property
     def pressure(self) -> float:
         """Return the pressure in native units."""
-        pressure =  self._rest.get_condition(FIELD_CONDITION_PRESSURE)
+        pressure = self._rest.get_condition(FIELD_CONDITION_PRESSURE)
         if pressure is not None:
             return self._rest.get_condition(FIELD_CONDITION_PRESSURE) / 100
 
@@ -160,30 +164,44 @@ class WUWeather(WeatherEntity):
         forecast = [
             Forecast({
                 ATTR_FORECAST_CONDITION: self._rest._wxPhraseShort_to_conditio(
-                    self._rest.get_forecast(FIELD_FORECAST_WXPHRASESHORT, period)
+                    self._rest.get_forecast(
+                        FIELD_FORECAST_WXPHRASESHORT, period)
                 ),
 
-                ATTR_FORECAST_PRECIPITATION: self._rest.get_forecast(FIELD_FORECAST_QPF, period),
-                ATTR_FORECAST_PRECIPITATION_PROBABILITY: self._rest.get_forecast(FIELD_FORECAST_PRECIPCHANCE, period),
+                ATTR_FORECAST_PRECIPITATION:
+                self._rest.get_forecast(FIELD_FORECAST_QPF, period),
+                ATTR_FORECAST_PRECIPITATION_PROBABILITY:
+                self._rest.get_forecast(FIELD_FORECAST_PRECIPCHANCE, period),
 
-                ATTR_FORECAST_TEMP: self._rest.get_forecast(FIELD_FORECAST_TEMPERATUREMAX, period),
+                ATTR_FORECAST_TEMP:
+                self._rest.get_forecast(FIELD_FORECAST_TEMPERATUREMAX, period),
                 # Use the min temperature from the next prediction,
-                # as otherwise it is too similar to the current max and is not as useful
-                ATTR_FORECAST_TEMP_LOW: self._rest.get_forecast(FIELD_FORECAST_TEMPERATUREMIN, period+1),
+                # as otherwise it is too similar to the current max
+                # and is not as useful
+                ATTR_FORECAST_TEMP_LOW:
+                self._rest.get_forecast(
+                    FIELD_FORECAST_TEMPERATUREMIN, period+1),
 
-                ATTR_FORECAST_TIME: self._rest.get_forecast(FIELD_FORECAST_VALIDTIMEUTC, period) * 1000,
+                ATTR_FORECAST_TIME:
+                self._rest.get_forecast(
+                    FIELD_FORECAST_VALIDTIMEUTC, period) * 1000,
 
-                ATTR_FORECAST_WIND_BEARING: self._rest.get_forecast(FIELD_FORECAST_WINDDIRECTIONCARDINAL, period),
-                ATTR_FORECAST_WIND_SPEED: self._rest.get_forecast(FIELD_FORECAST_WINDSPEED, period)
+                ATTR_FORECAST_WIND_BEARING:
+                self._rest.get_forecast(
+                    FIELD_FORECAST_WINDDIRECTIONCARDINAL, period),
+                ATTR_FORECAST_WIND_SPEED: self._rest.get_forecast(
+                    FIELD_FORECAST_WINDSPEED, period)
             })
-            for period in [2,4,6,8,10]
+            for period in [2, 4, 6, 8, 10]
         ]
         _LOGGER.debug(f'{forecast=}')
         return forecast
 
     @property
     def precipitation_unit(self) -> str:
-        """Return the native unit of measurement for accumulated precipitation."""
+        """
+        Return the native unit of measurement for accumulated precipitation.
+        """
         return self._rest.units_of_measurement[LENGTHUNIT]
 
     @property

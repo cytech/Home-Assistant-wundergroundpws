@@ -34,6 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
+
 class WUndergroundData:
     """Get data from WUnderground."""
 
@@ -170,7 +171,8 @@ class WUndergroundData:
         for condition, phrases in cls.condition_map.items():
             if wx_phrase_short in phrases:
                 return condition
-        _LOGGER.warn(f'Unsupported condition string "{wx_phrase_short}". Please update WUndergroundData.condition_map.')
+        _LOGGER.warn(
+            f'Unsupported condition string "{wx_phrase_short}". Please update WUndergroundData.condition_map.')
         return None
 
     def _build_url(self, baseurl):

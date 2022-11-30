@@ -7,7 +7,7 @@ import voluptuous as vol
 from homeassistant.const import (
     CONF_API_KEY,
     CONF_LATITUDE, CONF_LONGITUDE,
-    )
+)
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.util.unit_system import METRIC_SYSTEM
@@ -47,6 +47,7 @@ CONFIG_SCHEMA = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
+
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     '''Set up the WUnderground sensor.'''
