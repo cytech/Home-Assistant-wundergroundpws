@@ -1,6 +1,9 @@
 # Home-Assistant-wundergroundpws
 Home Assistant custom component sensor for Weather Underground personal weather station users
 
+Version 1.0.0 with hass weather entity available on v.1.X.X branch.
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
+
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
 UPGRADE NOTE v0.8.3: Requires Home Assistant v 2022.11 or later
