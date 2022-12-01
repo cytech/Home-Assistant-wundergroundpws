@@ -1,3 +1,8 @@
+v1.0.0
+complete rework by @shtrom to add weather entity.  
+Pull Request #114 - https://github.com/shtrom/Home-Assistant-wundergroundpws/tree/weather-entity  
+BREAKING CHANGE for upgrades
+
 v0.8.3
 merge PR #100 Add sensor for wind direction as friendly name
 

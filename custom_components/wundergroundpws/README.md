@@ -1,6 +1,35 @@
+# Home-Assistant-wundergroundpws
+Home Assistant custom component sensor for Weather Underground personal weather station users
+
+:+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
+
+UPGRADE NOTE v1.0.0: BREAKING CHANGE -  Requires Home Assistant v 2022.11 or later.  
+REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
+See "Example configuration.yaml entry" below.  
+TO UPGRADE FROM v0.8.X:
+1. Stop Home Assistant.
+2. Delete contents of existing "custom_components/wundergroundpws" directory.
+3. Download v1.X.X zip file.
+4. Extract v1.X.X zip file and copy the contents of the "custom_components/wundergroundpws" directory into the existing "custom_components/wundergroundpws" directory.
+5. Modify your configuration.yaml, to resemble the "Example configuration.yaml entry" below.
+6. Restart Home Assistant.
+7. Existing sensors in any entity cards should be the same.  
+8. In lovelace, add a "weather forecast" card selecting the "weather.YOUR_STATION_ID" entity and save.  
+
+Thanks to @shtrom for ALL the work on this update!
+******************************
+UPGRADE NOTE v0.8.3: Requires Home Assistant v 2022.11 or later
+
+UPGRADE NOTE v0.8.X: Requires Home Assistant v 2021.8 or later  
+
+UPGRADE NOTE: numeric_precision must be added to your exisiting configuration.yaml for this sensor.
+This adds the ability to display PWS data as integer or decimal. Valid options are 'none' or 'decimal'.
+See example below.
+
 
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.
 
+<p class='note warning'>
 Free API keys are only issued to registered and active Weather Underground personal weather station users.
 
 To use this sensor, you need to enter your personal weather station API key and Station ID in configuration.yaml.
@@ -19,21 +48,34 @@ To get a free API key:
 
 Please consider this when using the following information.
 
+To Install, copy the custom_components directory into your .homeassistant directory
+and the www directory into your .homeassistant directory.
+
+or
+
+copy the contents of the custom_components into an existing custom_components directory in your .homeassistant directory
+and the contents of the www directory into an existing www directory in your .homeassistant directory.
+
 Current conditions are generated from the wundergroundpws configured pws_id.
 
 Forecast is generated from the HA configured latitude/longitude.
-
+</p>
 
 
 To add Wunderground to your installation, add the following to your `configuration.yaml` file:
 
 ```yaml
 # Example configuration.yaml entry
+wundergroundpws:
+  api_key: YOUR_API_KEY
+  pws_id: YOUR_STATION_ID
+  numeric_precision: none
+
+weather:
+  - platform: wundergroundpws
+
 sensor:
   - platform: wundergroundpws
-    api_key: YOUR_API_KEY
-    pws_id: YOUR_STATION_ID
-    numeric_precision: none
     monitored_conditions:
       - temp
       - dewpt
@@ -137,19 +179,19 @@ Conditions above marked with <a name="1n">[1n]</a> are nightly forecasts. To get
 in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
 
 ```yaml
-sensor:
-  - platform: wunderground
-    api_key: YOUR_API_KEY
-    pws_id: YOUR_STATION_ID
-    monitored_conditions:
-      - weather_1d
-      - weather_1n
-      - weather_2d
-      - weather_2n
-      - weather_3d
-      - weather_3n
-      - weather_4d
-      - weather_4n
+    sensor:
+      - platform: wundergroundpws
+        api_key: YOUR_API_KEY
+        pws_id: YOUR_STATION_ID
+        monitored_conditions:
+          - weather_1d
+          - weather_1n
+          - weather_2d
+          - weather_2n
+          - weather_3d
+          - weather_3n
+          - weather_4d
+          - weather_4n
 ```
 <p class='note warning'>
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).

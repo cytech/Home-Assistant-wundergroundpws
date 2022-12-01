@@ -3,6 +3,21 @@ Home Assistant custom component sensor for Weather Underground personal weather 
 
 :+1: If you find this product useful, feel free to buy me a beer: https://paypal.me/cytecheng
 
+UPGRADE NOTE v1.0.0: BREAKING CHANGE -  Requires Home Assistant v 2022.11 or later.  
+REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
+See "Example configuration.yaml entry" below.  
+TO UPGRADE FROM v0.8.X:
+1. Stop Home Assistant.
+2. Delete contents of existing "custom_components/wundergroundpws" directory.
+3. Download v1.X.X zip file.
+4. Extract v1.X.X zip file and copy the contents of the "custom_components/wundergroundpws" directory into the existing "custom_components/wundergroundpws" directory.
+5. Modify your configuration.yaml, to resemble the "Example configuration.yaml entry" below.
+6. Restart Home Assistant.
+7. Existing sensors in any entity cards should be the same.  
+8. In lovelace, add a "weather forecast" card selecting the "weather.YOUR_STATION_ID" entity and save.  
+
+Thanks to @shtrom for ALL the work on this update!
+******************************
 UPGRADE NOTE v0.8.3: Requires Home Assistant v 2022.11 or later
 
 UPGRADE NOTE v0.8.X: Requires Home Assistant v 2021.8 or later  
@@ -51,11 +66,16 @@ To add Wunderground to your installation, add the following to your `configurati
 
 ```yaml
 # Example configuration.yaml entry
+wundergroundpws:
+  api_key: YOUR_API_KEY
+  pws_id: YOUR_STATION_ID
+  numeric_precision: none
+
+weather:
+  - platform: wundergroundpws
+
 sensor:
   - platform: wundergroundpws
-    api_key: YOUR_API_KEY
-    pws_id: YOUR_STATION_ID
-    numeric_precision: none
     monitored_conditions:
       - temp
       - dewpt
