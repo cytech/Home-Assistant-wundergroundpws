@@ -102,41 +102,41 @@ Description of terms and variables
       default: symbol
       keys:
         (generated from PWS)
-        stationID:
+        stationid:
           description: Your personal weather station (PWS) ID
-        solarRadiation:
+        solarradiation:
           description: Current levels of solar radiation
         neighborhood:
           description: WU PWS reference name
-        obsTimeLocal:
+        obstimelocal:
           description: Text summary of local observation time
         uv:
           description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
         winddir:
           description: Wind degrees
-        windDirectionName:
+        winddirectionname:
           description: Wind cardinal direction (N,S,E,W, etc)
         humidity:
           description: Relative humidity                  
         dewpt:
           description: Temperature below which water droplets begin to condense and dew can form
-        heatIndex:
+        heatindex:
           description: Heat index (combined effects of the temperature and humidity of the air)
-        windChill:
+        windchill:
           description: Wind Chill (combined effects of the temperature and wind)      
         elev:
           description: Elevation
-        precipTotal:
+        preciptotal:
           description: Today Total precipitation
-        precipRate:
+        preciprate:
           description: Rain intensity
         pressure:
           description: Atmospheric air pressure
         temp:
           description: Current temperature
-        windGust:
+        windgust:
           description: Wind gusts speed
-        windSpeed:
+        windspeed:
           description: Current wind speed
         (generated from lat/lon forecast)        
         precip_1d:
