@@ -164,12 +164,19 @@ class WUndergroundData:
             return None
 
     @classmethod
-    def _wxPhraseShort_to_conditio(cls, wx_phrase_short):
+    def _wxPhraseShort_to_condition(cls, wx_phrase_short):
         '''
         Based on data at [0]
 
         [0] https://wiki.webcore.co/TWC_Weather
         '''
+        if not wx_phrase_short:
+            _LOGGER.warn(
+                'Empty wxPhraseShort in response from the Weather API.'
+                'This is usually due to the `lang` setting.'
+                'Please try unsetting it.'
+            )
+            return None
         for s in cls.condition_modifiers:
             wx_phrase_short_clean = wx_phrase_short.replace(s, '')
         wx_phrase_short_clean = wx_phrase_short_clean.strip()
