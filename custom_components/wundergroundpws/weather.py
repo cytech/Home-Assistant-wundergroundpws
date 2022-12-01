@@ -167,7 +167,7 @@ class WUWeather(WeatherEntity):
 
         forecast = [
             Forecast({
-                ATTR_FORECAST_CONDITION: self._rest._wxPhraseShort_to_conditio(
+                ATTR_FORECAST_CONDITION: self._rest._wxPhraseShort_to_condition(
                     self._rest.get_forecast(
                         FIELD_FORECAST_WXPHRASESHORT, period)
                 ),
@@ -213,4 +213,4 @@ class WUWeather(WeatherEntity):
         """Return the current condition."""
         day = self._rest.get_forecast(FIELD_FORECAST_WXPHRASESHORT)
         night = self._rest.get_forecast(FIELD_FORECAST_WXPHRASESHORT, 1)
-        return self._rest._wxPhraseShort_to_conditio(day or night)
+        return self._rest._wxPhraseShort_to_condition(day or night)
