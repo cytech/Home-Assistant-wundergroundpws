@@ -46,6 +46,7 @@ class WUndergroundData:
             "Clear",
         ],
         'cloudy': [
+            "Clouds",
             "Cloudy",
             "Flurries",
         ],
