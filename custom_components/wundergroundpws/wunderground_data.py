@@ -65,6 +65,8 @@ class WUndergroundData:
             "Rain/Thunder",
         ],
         'partlycloudy': [
+            "P Cloudy",
+            "M Cloudy",
         ],
         'pouring': [
             "Heavy Rain",
@@ -105,9 +107,7 @@ class WUndergroundData:
         'AM ',
         'Few ',
         'Late',
-        'M ',
         'Near',
-        'P',
         'PM ',
         'Sct',
     )
@@ -171,13 +171,18 @@ class WUndergroundData:
         [0] https://wiki.webcore.co/TWC_Weather
         '''
         for s in cls.condition_modifiers:
-            wx_phrase_short = wx_phrase_short.replace(s, '')
-        wx_phrase_short = wx_phrase_short.strip()
+            wx_phrase_short_clean = wx_phrase_short.replace(s, '')
+        wx_phrase_short_clean = wx_phrase_short_clean.strip()
         for condition, phrases in cls.condition_map.items():
-            if wx_phrase_short in phrases:
+            if wx_phrase_short_clean in phrases:
+                # _LOGGER.debug(
+                #     f'Mapping "{wx_phrase_short}" to {condition}'
+                # )
                 return condition
         _LOGGER.warn(
-            f'Unsupported condition string "{wx_phrase_short}". Please update WUndergroundData.condition_map.')
+            f'Unsupported condition string "{wx_phrase_short}". '
+            'Please update WUndergroundData.condition_map.'
+        )
         return None
 
     def _build_url(self, baseurl):
