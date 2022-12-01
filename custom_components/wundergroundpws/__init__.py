@@ -36,13 +36,17 @@ CONFIG_SCHEMA = vol.Schema(
         DOMAIN: {
             vol.Required(CONF_API_KEY): cv.string,
             vol.Required(CONF_PWS_ID): cv.string,
-            vol.Required(CONF_NUMERIC_PRECISION): cv.string,
+            vol.Required(CONF_NUMERIC_PRECISION):
+                vol.All(vol.In(['none', 'decimal'])),
 
-            vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.All(vol.In(LANG_CODES)),
+            vol.Optional(CONF_LANG, default=DEFAULT_LANG):
+                vol.All(vol.In(LANG_CODES)),
             vol.Inclusive(CONF_LATITUDE, 'coordinates',
-                          'Latitude and longitude must exist together'): cv.latitude,
+                          'Latitude and longitude must exist together'):
+                cv.latitude,
             vol.Inclusive(CONF_LONGITUDE, 'coordinates',
-                          'Latitude and longitude must exist together'): cv.longitude,
+                          'Latitude and longitude must exist together'):
+                cv.longitude,
         },
     },
     extra=vol.ALLOW_EXTRA,
@@ -52,13 +56,17 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     '''Set up the WUnderground sensor.'''
 
-    latitude = config.get(CONF_LATITUDE, hass.config.latitude)
-    longitude = config.get(CONF_LONGITUDE, hass.config.longitude)
-
     platform_config = config.get(DOMAIN)
+
     api_key = platform_config.get(CONF_API_KEY)
     pws_id = platform_config.get(CONF_PWS_ID)
+    # XXX: Could get the lat/long from the PWS
+    latitude = platform_config.get(CONF_LATITUDE, hass.config.latitude)
+    longitude = platform_config.get(CONF_LONGITUDE, hass.config.longitude)
+
     numeric_precision = platform_config.get(CONF_NUMERIC_PRECISION)
+
+    lang = platform_config.get(CONF_LANG)
 
     if hass.config.units is METRIC_SYSTEM:
         unit_system_api = 'm'
@@ -71,7 +79,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
         hass,
         api_key, pws_id, numeric_precision,
         unit_system_api, unit_system,
-        config.get(CONF_LANG),
+        lang,
         latitude, longitude)
 
     await rest.async_update()

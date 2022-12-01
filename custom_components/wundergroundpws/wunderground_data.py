@@ -28,8 +28,11 @@ from .const import (
     FIELD_FORECAST_WINDSPEED,
 )
 
-_RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&format=json&units={}&apiKey={}'
-_RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&{}&format=json&apiKey={}'
+_RESOURCESHARED = '&format=json&apiKey={apiKey}&units={units}'
+_RESOURCECURRENT = ('https://api.weather.com/v2/pws/observations/current'
+                    '?stationId={stationId}')
+_RESOURCEFORECAST = ('https://api.weather.com/v3/wx/forecast/daily/5day'
+                     '?geocode={latitude},{longitude}')
 _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
@@ -70,6 +73,7 @@ class WUndergroundData:
             "Light Rain",
             "Rain",
             "Rain Shower",
+            "R/S Showers",
             "Rain/Wind",
             "Rn/Snw/Wind",
             "Shower/Wind",
@@ -108,8 +112,9 @@ class WUndergroundData:
         'Sct',
     )
 
-    def __init__(self, hass, api_key, pws_id, numeric_precision, unit_system_api, unit_system, lang, latitude,
-                 longitude):
+    def __init__(self, hass, api_key, pws_id,
+                 numeric_precision, unit_system_api, unit_system, lang,
+                 latitude, longitude):
         """Initialize the data object."""
         self._hass = hass
         self._api_key = api_key
@@ -118,7 +123,7 @@ class WUndergroundData:
         self._unit_system_api = unit_system_api
         self.unit_system = unit_system
         self.units_of_measurement = None
-        self._lang = 'language={}'.format(lang)
+        self._lang = lang
         self._latitude = latitude
         self._longitude = longitude
         self._features = set()
@@ -176,18 +181,23 @@ class WUndergroundData:
         return None
 
     def _build_url(self, baseurl):
-        if baseurl is _RESOURCECURRENT:
-            if self._numeric_precision == 'none':
-                url = baseurl.format(
-                    self._pws_id, self._unit_system_api, self._api_key)
-            else:
-                url = baseurl.format(
-                    self._pws_id, self._unit_system_api, self._api_key) + '&numericPrecision=decimal'
-        else:
-            url = baseurl.format(self._latitude, self._longitude,
-                                 self._unit_system_api, self._lang, self._api_key)
+        if baseurl == _RESOURCECURRENT:
+            if self._numeric_precision != 'none':
+                baseurl += '&numericPrecision={numericPrecision}'
+        elif baseurl == _RESOURCEFORECAST:
+            baseurl += '&language={language}'
 
-        return url
+        baseurl += _RESOURCESHARED
+
+        return baseurl.format(
+            apiKey=self._api_key,
+            language=self._lang,
+            latitude=self._latitude,
+            longitude=self._longitude,
+            numericPrecision=self._numeric_precision,
+            stationId=self._pws_id,
+            units=self._unit_system_api
+        )
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
@@ -195,22 +205,21 @@ class WUndergroundData:
         headers = {'Accept-Encoding': 'gzip'}
         try:
             with async_timeout.timeout(10):
-                response = await self._session.get(self._build_url(_RESOURCECURRENT), headers=headers)
+                url = self._build_url(_RESOURCECURRENT)
+                response = await self._session.get(url, headers=headers)
             result_current = await response.json()
-
-            # need to check specific new api errors
-            # if "error" in result['response']:
-            #     raise ValueError(result['response']["error"]["description"])
-            # _LOGGER.debug('result_current' + str(result_current))
-
             if result_current is None:
                 raise ValueError('NO CURRENT RESULT')
+            self._check_errors(url, result_current)
+
             with async_timeout.timeout(10):
-                response = await self._session.get(self._build_url(_RESOURCEFORECAST), headers=headers)
+                url = self._build_url(_RESOURCEFORECAST)
+                response = await self._session.get(url, headers=headers)
             result_forecast = await response.json()
 
             if result_forecast is None:
                 raise ValueError('NO FORECAST RESULT')
+            self._check_errors(url, result_forecast)
 
             result = {**result_current, **result_forecast}
 
@@ -220,3 +229,16 @@ class WUndergroundData:
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error fetching WUnderground data: %s", repr(err))
         _LOGGER.debug(f'WUnderground data {self.data}')
+
+    def _check_errors(self, url: str, response: dict):
+        _LOGGER.debug(f'Checking errors from {url} in {response}')
+        if 'errors' not in response:
+            return
+        if errors := response['errors']:
+            raise ValueError(
+                f'Error from {url}: '
+                '; '.join([
+                    e['message']
+                    for e in errors
+                ])
+            )
