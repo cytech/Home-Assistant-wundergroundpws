@@ -234,6 +234,11 @@ class WUndergroundData:
                 raise ValueError('NO CURRENT RESULT')
             self._check_errors(url, result_current)
 
+            if not self._longitude:
+                self._longitude = result_current['observations'][0]['lon']
+            if not self._latitude:
+                self._latitude = result_current['observations'][0]['lat']
+
             with async_timeout.timeout(10):
                 url = self._build_url(_RESOURCEFORECAST)
                 response = await self._session.get(url, headers=headers)

@@ -61,8 +61,8 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     api_key = platform_config.get(CONF_API_KEY)
     pws_id = platform_config.get(CONF_PWS_ID)
     # XXX: Could get the lat/long from the PWS
-    latitude = platform_config.get(CONF_LATITUDE, hass.config.latitude)
-    longitude = platform_config.get(CONF_LONGITUDE, hass.config.longitude)
+    latitude = platform_config.get(CONF_LATITUDE)
+    longitude = platform_config.get(CONF_LONGITUDE)
 
     numeric_precision = platform_config.get(CONF_NUMERIC_PRECISION)
 
