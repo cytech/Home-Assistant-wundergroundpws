@@ -12,11 +12,18 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import Throttle
 
 from .const import (
+    FIELD_LATITUDE,
+    FIELD_LONGITUDE,
+
+    FIELD_OBSERVATIONS,
+
     FIELD_CONDITION_HUMIDITY,
     FIELD_CONDITION_PRESSURE,
     FIELD_CONDITION_TEMP,
     FIELD_CONDITION_WINDDIR,
     FIELD_CONDITION_WINDSPEED,
+
+    FIELD_DAYPART,
 
     FIELD_FORECAST_WXPHRASESHORT,
     FIELD_FORECAST_VALIDTIMEUTC,
@@ -153,8 +160,8 @@ class WUndergroundData:
                 FIELD_CONDITION_WINDDIR,
         ]:
             # Those fields are unit-less
-            return self.data['observations'][0][field] or 0
-        return self.data['observations'][0][self.unit_system][field]
+            return self.data[FIELD_OBSERVATIONS][0][field] or 0
+        return self.data[FIELD_OBSERVATIONS][0][self.unit_system][field]
 
     def get_forecast(self, field, period=0):
         try:
@@ -165,7 +172,7 @@ class WUndergroundData:
             ]:
                 # Those fields exist per-day, rather than per dayPart, so the period is halved
                 return self.data[field][int(period/2)]
-            return self.data['daypart'][0][field][period]
+            return self.data[FIELD_DAYPART][0][field][period]
         except IndexError:
             return None
 
@@ -235,9 +242,11 @@ class WUndergroundData:
             self._check_errors(url, result_current)
 
             if not self._longitude:
-                self._longitude = result_current['observations'][0]['lon']
+                self._longitude = (result_current[FIELD_OBSERVATIONS]
+                                   [0][FIELD_LONGITUDE])
             if not self._latitude:
-                self._latitude = result_current['observations'][0]['lat']
+                self._latitude = (result_current[FIELD_OBSERVATIONS]
+                                  [0][FIELD_LATITUDE])
 
             with async_timeout.timeout(10):
                 url = self._build_url(_RESOURCEFORECAST)
