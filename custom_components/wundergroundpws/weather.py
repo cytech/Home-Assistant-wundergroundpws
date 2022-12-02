@@ -162,12 +162,13 @@ class WUWeather(WeatherEntity):
     def forecast(self) -> list[Forecast]:
         """Return the forecast in native units."""
         days = [0, 2, 4, 6, 8]
-        if self._rest.get_forecast('dayOrNight', 0) == 'N':
-            days = [d+1 for d in days]
+        if self._rest.get_forecast('temperature', 0) is None:
+            days[0] += 1
 
         forecast = [
             Forecast({
-                ATTR_FORECAST_CONDITION: self._rest._wxPhraseShort_to_condition(
+                ATTR_FORECAST_CONDITION:
+                self._rest._wxPhraseShort_to_condition(
                     self._rest.get_forecast(
                         FIELD_FORECAST_WXPHRASESHORT, period)
                 ),
