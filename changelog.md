@@ -1,3 +1,7 @@
+v1.0.1
+merge weather entity fixes from @shtrom
+correct pressure reporting in weather entity
+
 v1.0.0
 complete rework by @shtrom to add weather entity.  
 Pull Request #114 - https://github.com/shtrom/Home-Assistant-wundergroundpws/tree/weather-entity  
