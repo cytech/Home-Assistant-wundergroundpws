@@ -67,7 +67,6 @@ class WUndergroundData:
         ],
         'partlycloudy': [
             "P Cloudy",
-            "M Cloudy",
         ],
         'pouring': [
             "Heavy Rain",
@@ -82,8 +81,7 @@ class WUndergroundData:
             "Shower/Wind",
             "Showers",
             "Showers/Wind",
-            "AM Showers",
-            "PM Showers",
+            "Shwrs",
         ],
         'snowy': [
             "Ice/Snow",
@@ -99,6 +97,7 @@ class WUndergroundData:
             "M Sunny",
         ],
         'windy': [
+            "Clr/Wind",
             "Fair/Wind",
             "Sun/Wind"
         ],
@@ -107,13 +106,16 @@ class WUndergroundData:
             "Cloudy/Wind",
         ],
     }
+    # List of modifiers to strip from condition descriptor
+    # This list needs to be sorted in order of decreasing length
     condition_modifiers: list = (
-        'AM ',
-        'Few ',
         'Late',
         'Near',
-        'PM ',
+        'Few',
         'Sct',
+        'AM',
+        'PM',
+        'M',
     )
 
     def __init__(self, hass, api_key, pws_id,
@@ -181,8 +183,11 @@ class WUndergroundData:
                 'Please try unsetting it.'
             )
             return None
+        wx_phrase_short_clean = wx_phrase_short
         for s in cls.condition_modifiers:
-            wx_phrase_short_clean = wx_phrase_short.replace(s, '')
+            # _LOGGER.debug(f'before {wx_phrase_short}')
+            wx_phrase_short_clean = wx_phrase_short_clean.replace(s, '')
+            # _LOGGER.debug(f'after {wx_phrase_short_clean}')
         wx_phrase_short_clean = wx_phrase_short_clean.strip()
         for condition, phrases in cls.condition_map.items():
             if wx_phrase_short_clean in phrases:
@@ -192,7 +197,8 @@ class WUndergroundData:
                 return condition
         _LOGGER.warn(
             f'Unsupported condition string "{wx_phrase_short}". '
-            'Please update WUndergroundData.condition_map.'
+            'Please update WUndergroundData.condition_map '
+            'and/or WUndergroundData.condition_modifiers.'
         )
         return None
 
