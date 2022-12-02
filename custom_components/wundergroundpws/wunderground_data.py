@@ -12,11 +12,18 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import Throttle
 
 from .const import (
+    FIELD_LATITUDE,
+    FIELD_LONGITUDE,
+
+    FIELD_OBSERVATIONS,
+
     FIELD_CONDITION_HUMIDITY,
     FIELD_CONDITION_PRESSURE,
     FIELD_CONDITION_TEMP,
     FIELD_CONDITION_WINDDIR,
     FIELD_CONDITION_WINDSPEED,
+
+    FIELD_DAYPART,
 
     FIELD_FORECAST_WXPHRASESHORT,
     FIELD_FORECAST_VALIDTIMEUTC,
@@ -67,7 +74,6 @@ class WUndergroundData:
         ],
         'partlycloudy': [
             "P Cloudy",
-            "M Cloudy",
         ],
         'pouring': [
             "Heavy Rain",
@@ -82,8 +88,7 @@ class WUndergroundData:
             "Shower/Wind",
             "Showers",
             "Showers/Wind",
-            "AM Showers",
-            "PM Showers",
+            "Shwrs",
         ],
         'snowy': [
             "Ice/Snow",
@@ -99,6 +104,7 @@ class WUndergroundData:
             "M Sunny",
         ],
         'windy': [
+            "Clr/Wind",
             "Fair/Wind",
             "Sun/Wind"
         ],
@@ -107,13 +113,16 @@ class WUndergroundData:
             "Cloudy/Wind",
         ],
     }
+    # List of modifiers to strip from condition descriptor
+    # This list needs to be sorted in order of decreasing length
     condition_modifiers: list = (
-        'AM ',
-        'Few ',
         'Late',
         'Near',
-        'PM ',
+        'Few',
         'Sct',
+        'AM',
+        'PM',
+        'M',
     )
 
     def __init__(self, hass, api_key, pws_id,
@@ -151,8 +160,8 @@ class WUndergroundData:
                 FIELD_CONDITION_WINDDIR,
         ]:
             # Those fields are unit-less
-            return self.data['observations'][0][field] or 0
-        return self.data['observations'][0][self.unit_system][field]
+            return self.data[FIELD_OBSERVATIONS][0][field] or 0
+        return self.data[FIELD_OBSERVATIONS][0][self.unit_system][field]
 
     def get_forecast(self, field, period=0):
         try:
@@ -163,7 +172,7 @@ class WUndergroundData:
             ]:
                 # Those fields exist per-day, rather than per dayPart, so the period is halved
                 return self.data[field][int(period/2)]
-            return self.data['daypart'][0][field][period]
+            return self.data[FIELD_DAYPART][0][field][period]
         except IndexError:
             return None
 
@@ -181,8 +190,11 @@ class WUndergroundData:
                 'Please try unsetting it.'
             )
             return None
+        wx_phrase_short_clean = wx_phrase_short
         for s in cls.condition_modifiers:
-            wx_phrase_short_clean = wx_phrase_short.replace(s, '')
+            # _LOGGER.debug(f'before {wx_phrase_short}')
+            wx_phrase_short_clean = wx_phrase_short_clean.replace(s, '')
+            # _LOGGER.debug(f'after {wx_phrase_short_clean}')
         wx_phrase_short_clean = wx_phrase_short_clean.strip()
         for condition, phrases in cls.condition_map.items():
             if wx_phrase_short_clean in phrases:
@@ -192,7 +204,8 @@ class WUndergroundData:
                 return condition
         _LOGGER.warn(
             f'Unsupported condition string "{wx_phrase_short}". '
-            'Please update WUndergroundData.condition_map.'
+            'Please update WUndergroundData.condition_map '
+            'and/or WUndergroundData.condition_modifiers.'
         )
         return None
 
@@ -228,6 +241,13 @@ class WUndergroundData:
                 raise ValueError('NO CURRENT RESULT')
             self._check_errors(url, result_current)
 
+            if not self._longitude:
+                self._longitude = (result_current[FIELD_OBSERVATIONS]
+                                   [0][FIELD_LONGITUDE])
+            if not self._latitude:
+                self._latitude = (result_current[FIELD_OBSERVATIONS]
+                                  [0][FIELD_LATITUDE])
+
             with async_timeout.timeout(10):
                 url = self._build_url(_RESOURCEFORECAST)
                 response = await self._session.get(url, headers=headers)
@@ -247,7 +267,7 @@ class WUndergroundData:
         _LOGGER.debug(f'WUnderground data {self.data}')
 
     def _check_errors(self, url: str, response: dict):
-        _LOGGER.debug(f'Checking errors from {url} in {response}')
+        # _LOGGER.debug(f'Checking errors from {url} in {response}')
         if 'errors' not in response:
             return
         if errors := response['errors']:
