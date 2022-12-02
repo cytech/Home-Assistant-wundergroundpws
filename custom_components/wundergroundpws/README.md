@@ -44,10 +44,10 @@ Please consider this when using the following information.
 
 
 # Installation
-Download the latest release zip file from this repository.
+Download the latest v1.X.X release zip file from this repository.
 Extract the zip file to a temporary directory.
 -------
-Stop Home Assistant.  
+Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.    
 Copy the custom_components directory from the extracted file into your .homeassistant directory
 and the www directory from the extracted file into your .homeassistant directory.  
 or  
@@ -79,9 +79,9 @@ UPGRADE NOTE v1.0.0: BREAKING CHANGE -  Requires Home Assistant v 2022.11 or lat
 REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
 See "Example configuration.yaml entry" above.  
 TO UPGRADE FROM v0.8.X:
-1. Stop Home Assistant.
+1. Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.
 2. Delete contents of existing "custom_components/wundergroundpws" directory.
-3. Download v1.X.X zip file.
+3. Download the latest v1.X.X release zip file from this repository.
 4. Extract v1.X.X zip file and copy the contents of the "custom_components/wundergroundpws" directory into the existing "custom_components/wundergroundpws" directory.
 5. Modify your configuration.yaml, to resemble the "Example configuration.yaml entry" above.
 6. Restart Home Assistant.
