@@ -258,7 +258,7 @@ class WUndergroundData:
         _LOGGER.debug(f'WUnderground data {self.data}')
 
     def _check_errors(self, url: str, response: dict):
-        _LOGGER.debug(f'Checking errors from {url} in {response}')
+        # _LOGGER.debug(f'Checking errors from {url} in {response}')
         if 'errors' not in response:
             return
         if errors := response['errors']:

@@ -199,7 +199,7 @@ class WUWeather(WeatherEntity):
             })
             for period in days
         ]
-        _LOGGER.debug(f'{forecast=}')
+        # _LOGGER.debug(f'{forecast=}')
         return forecast
 
     @property
