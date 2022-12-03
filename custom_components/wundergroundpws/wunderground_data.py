@@ -81,6 +81,7 @@ class WUndergroundData:
         'rainy': [
             "Light Rain",
             "Rain",
+            "Lgt Rain",
             "Rain Shower",
             "R/S Showers",
             "Rain/Wind",
