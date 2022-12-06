@@ -62,6 +62,8 @@ class WUndergroundData:
         ],
         'fog': [
             "Fog",
+            "Foggy",
+            "Fog Early",
         ],
         'hail': [
             "Frz Rain",
