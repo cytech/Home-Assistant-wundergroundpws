@@ -1,3 +1,13 @@
+v1.0.2
+add "Lgt Rain" to condition_map
+add "Early" to condition_modifiers
+added - precip_chance_  1n thru 5n sensors for nighttime
+return 'Expired' instead of 'unknown' for daypart sensors from the API after 3:00pm Local Apparent Time
+Wunderground API caveat: 
+PLEASE NOTE: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.
+
+
+
 v1.0.1
 merge weather entity fixes from @shtrom
 correct pressure reporting in weather entity

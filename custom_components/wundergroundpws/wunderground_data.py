@@ -80,6 +80,7 @@ class WUndergroundData:
         ],
         'rainy': [
             "Light Rain",
+            "Lgt Rain",
             "Rain",
             "Rain Shower",
             "R/S Showers",
@@ -116,6 +117,7 @@ class WUndergroundData:
     # List of modifiers to strip from condition descriptor
     # This list needs to be sorted in order of decreasing length
     condition_modifiers: list = (
+        'Early',
         'Late',
         'Near',
         'Few',
@@ -260,6 +262,12 @@ class WUndergroundData:
             result = {**result_current, **result_forecast}
 
             self.data = result
+            # manual test responses
+            # before 3:00 pm
+            # self.data = {}
+            # after 3:00 pm
+            # self.data = {}
+
         except ValueError as err:
             _LOGGER.error("Check WUnderground API %s", err.args)
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:

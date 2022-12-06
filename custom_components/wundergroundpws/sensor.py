@@ -113,17 +113,20 @@ class WUCurrentConditionsSensorConfig(WUSensorConfig):
 
 
 class WUDailyTextForecastSensorConfig(WUSensorConfig):
-    """Helper for defining sensor configurations for daily text forecasts."""
-
+    """Helper for defining sensor configurations for daily text forecasts.
+    Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
+    will appear as null in the API after 3:00pm Local Apparent Time. """
     def __init__(self, period):
         """Constructor.
         Args:
             period (int): forecast period number
         """
         super().__init__(
-            friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period],
+            friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period]
+            if (wu.data['daypart'][0]['daypartName'][period] is not None) else 'Expired',
             feature='forecast',
-            value=lambda wu: wu.data['daypart'][0]['narrative'][period],
+            value=lambda wu: wu.data['daypart'][0]['narrative'][period]
+            if(wu.data['daypart'][0]['narrative'][period] is not None) else 'Expired',
             entity_picture=lambda wu: '/local/wupws_icons/' +
             str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
             device_state_attributes={
@@ -133,7 +136,9 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
 
 
 class WUDailySimpleForecastSensorConfig(WUSensorConfig):
-    """Helper for defining sensor configurations for daily simpleforecasts."""
+    """Helper for defining sensor configurations for daily simpleforecasts.
+    Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
+    will appear as null in the API after 3:00pm Local Apparent Time. """
 
     def __init__(self, friendly_name, period, field,
                  unit_of_measurement=None, icon=None, device_class=None):
@@ -148,8 +153,10 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
         super().__init__(
             friendly_name=friendly_name,
             feature='forecast',
-            value=(lambda wu: wu.data['daypart'][0][field][period]),
-            unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement],
+            value=lambda wu: wu.data['daypart'][0][field][period]
+            if(wu.data['daypart'][0][field][period] is not None) else 'Expired',
+            unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement]
+            if(wu.data['daypart'][0][field][period] is not None) else '',
             entity_picture=lambda wu: str(
                 wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
             icon=icon,
@@ -307,16 +314,31 @@ SENSOR_TYPES = {
         "Precipitation Probability Today", 0, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_2d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability Tomorrow", 2, "precipChance", PERCENTAGEUNIT,
+        "Precipitation Probability Tomorrow (Day)", 2, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_3d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 3 Days", 4, "precipChance", PERCENTAGEUNIT,
+        "Precipitation Probability in 3 Days (Day)", 4, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_4d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 4 Days", 6, "precipChance", PERCENTAGEUNIT,
+        "Precipitation Probability in 4 Days (Day)", 6, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
     'precip_chance_5d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 5 Days", 8, "precipChance", PERCENTAGEUNIT,
+        "Precipitation Probability in 5 Days (Day)", 8, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella"),
+    'precip_chance_1n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability Tonight", 1, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella"),
+    'precip_chance_2n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability Tomorrow Night", 3, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella"),
+    'precip_chance_3n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability in 3 Days (Night)", 5, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella"),
+    'precip_chance_4n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability in 4 Days (Night)", 7, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella"),
+    'precip_chance_5n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability in 5 Days (Night)", 9, "precipChance", PERCENTAGEUNIT,
         "mdi:umbrella"),
 }
 

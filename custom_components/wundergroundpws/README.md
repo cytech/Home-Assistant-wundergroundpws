@@ -57,14 +57,17 @@ To add Wundergroundpws to your installation, add the following to your `configur
 
 ```yaml
 # Example configuration.yaml entry
+# REQUIRED
 wundergroundpws:
   api_key: YOUR_API_KEY
   pws_id: YOUR_STATION_ID
   numeric_precision: none
 
+# Required to generate HASS weather Entity for weather forecast card
 weather:
   - platform: wundergroundpws
 
+# Required if you wish to add sensors
 sensor:
   - platform: wundergroundpws
     monitored_conditions:
@@ -139,9 +142,11 @@ TO UPGRADE FROM v0.8.X:
      obsTimeLocal:
        description: Text summary of local observation time
      precip_1d:
-       description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation intensity"
+       description: Forecasted precipitation intensity. (Variations _1d, _2d, _3d, _4d, _5d)
      precip_chance_1d:
-       description: "[<sup>[1d]</sup>](#1d): Forecasted precipitation probability in %"      
+       description: Forecasted precipitation probability in %. (Variations _1d, _2d, _3d, _4d, _5d)      
+     precip_chance_1n:
+       description: Forecasted precipitation probability in %. (Variations _1n, _2n, _3n, _4n, _5n)
      precipRate:
        description: Rain intensity
      precipTotal:
@@ -155,17 +160,17 @@ TO UPGRADE FROM v0.8.X:
      temp:
        description: Current temperature
      temp_high_1d:
-       description: "[<sup>[1d]</sup>](#1d): Forecasted high temperature"
+       description: Forecasted high temperature. (Variations _1d, _2d, _3d, _4d, _5d)
      temp_low_1d:
-       description: "[<sup>[1d]</sup>](#1d): Forecasted low temperature"
+       description: Forecasted low temperature. (Variations _1d, _2d, _3d, _4d, _5d)
      uv:
        description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
      weather_1d:
-       description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Day"
+       description: A human-readable weather forecast of Day. (Variations _1d, _2d, _3d, _4d, _5d)
      weather_1n:
-       description: "[<sup>[12h]</sup>](#12h): A human-readable weather forecast of Night"
+       description: A human-readable weather forecast of Night. (Variations _1n, _2n, _3n, _4n, _5n)
      wind_1d:
-       description: "[<sup>[1d]</sup>](#1d): Forecasted wind speed"
+       description: Forecasted wind speed. (Variations _1d, _2d, _3d, _4d, _5d)
      windChill:
        description: Wind Chill (combined effects of the temperature and wind)      
      winddir:
@@ -178,7 +183,12 @@ TO UPGRADE FROM v0.8.X:
        description: Current wind speed      
 ```
 
-All the conditions listed above will be updated every 5 minutes.
+All the conditions listed above will be updated every 5 minutes.  
+
+**_Wunderground API caveat:   
+The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.  
+The affected sensors will return as "Expired" when this condition is met._**
+
 
 Conditions above marked with <a name="1d">[1d]</a> are daily forecasts. To get forecast for different day, replace the number
 in `_1d_` part of the sensor name. Valid values are from `1` to `5`.
@@ -190,6 +200,36 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
     sensor:
       - platform: wundergroundpws
         monitored_conditions:
+          - precip_1d
+          - precip_2d
+          - precip_3d
+          - precip_4d
+          - precip_5d
+          - precip_chance_1d
+          - precip_chance_1n
+          - precip_chance_2d
+          - precip_chance_2n
+          - precip_chance_3d
+          - precip_chance_3n
+          - precip_chance_4d
+          - precip_chance_4n
+          - precip_chance_5d
+          - precip_chance_5n
+          - temp_high_1d
+          - temp_high_2d
+          - temp_high_3d
+          - temp_high_4d
+          - temp_high_5d
+          - temp_low_1d
+          - temp_low_2d
+          - temp_low_3d
+          - temp_low_4d
+          - temp_low_5d
+          - wind_1d
+          - wind_2d
+          - wind_3d
+          - wind_4d
+          - wind_5d
           - weather_1d
           - weather_1n
           - weather_2d
@@ -198,6 +238,8 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
           - weather_3n
           - weather_4d
           - weather_4n
+          - weather_5d
+          - weather_5n
 ```
 <p class='note warning'>
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
@@ -230,7 +272,20 @@ sensor:
       - neighborhood
       - obsTimeLocal
       - precip_1d
+      - precip_2d
+      - precip_3d
+      - precip_4d
+      - precip_5d
       - precip_chance_1d
+      - precip_chance_1n
+      - precip_chance_2d
+      - precip_chance_2n
+      - precip_chance_3d
+      - precip_chance_3n
+      - precip_chance_4d
+      - precip_chance_4n
+      - precip_chance_5d
+      - precip_chance_5n
       - precipRate
       - precipTotal
       - pressure
@@ -238,7 +293,15 @@ sensor:
       - stationID
       - temp
       - temp_high_1d
+      - temp_high_2d
+      - temp_high_3d
+      - temp_high_4d
+      - temp_high_5d
       - temp_low_1d
+      - temp_low_2d
+      - temp_low_3d
+      - temp_low_4d
+      - temp_low_5d
       - today_summary
       - uv
       - weather_1d
@@ -252,6 +315,10 @@ sensor:
       - weather_5d
       - weather_5n
       - wind_1d
+      - wind_2d
+      - wind_3d
+      - wind_4d
+      - wind_5d
       - windChill
       - winddir
       - windDirectionName
