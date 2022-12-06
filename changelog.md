@@ -1,4 +1,5 @@
 v1.0.2
+Add state_class to sensors for automatic stats/graphs
 add "Lgt Rain" to condition_map
 add "Early" to condition_modifiers
 added - precip_chance_  1n thru 5n sensors for nighttime
