@@ -63,7 +63,6 @@ class WUndergroundData:
         'fog': [
             "Fog",
             "Foggy",
-            "Fog Early",
         ],
         'hail': [
             "Frz Rain",
@@ -98,6 +97,7 @@ class WUndergroundData:
             "Light Snow",
             "Snow Shower",
             "Snow/Wind",
+            "AM Snw Shwrs",
         ],
         'snowy-rainy': [
             "Rain/Snow",
