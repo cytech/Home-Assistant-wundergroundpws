@@ -96,9 +96,13 @@ class WUndergroundData:
             "Light Snow",
             "Snow Shower",
             "Snow/Wind",
+            "Snow",
+            "Snw Shwrs",
+
         ],
         'snowy-rainy': [
             "Rain/Snow",
+            "Rn/Snw",
         ],
         'sunny': [
             "Sunny",
