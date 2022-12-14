@@ -68,6 +68,7 @@ class WUndergroundData:
         ],
         'lightning': [
             'T-Storms',
+            'Iso T-Storms',
         ],
         'lightning-rainy': [
             "Rain/Thunder",
