@@ -1,3 +1,17 @@
+v1.1.0
+Fix/rework sensor device_class and state_class for statistics
+update wunderground language codes
+add "Foggy" to fog condition_map
+add "Ice" to snowy condition map
+add "Snw Shwrs" to snowy condition map
+add "Snow Showers" to snowy condition map
+add "Snow" to snowy condition map
+add "Rn/Snw" to snowy-rainy condition map
+add "T-Showers" to rainy condition map
+add "Drizzle" to rainy condition map
+add "P Cldy/Wind" to windy-variant condition map
+add "Iso" to condition_modifiers
+
 v1.0.2
 Add state_class to sensors for automatic stats/graphs
 add "Lgt Rain" to condition_map

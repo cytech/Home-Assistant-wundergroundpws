@@ -20,13 +20,16 @@ Thanks to @shtrom for ALL the work on this update!
 
 [Description of terms and variables](#description-of-terms-and-variables)
 
+[Statistics Card](#sensors-available-in-statistics)
+
 [Sample configuration.yaml](#sample-configurationyaml)
 
 # Installation Prerequisites
 Please review the minimum requirements below to determine whether you will be able to
 install and use the software.
 
-- Home Assistant Version 2022.11 or greater
+- wundergroundpws v1.1.0 requires Home Assistant Version 2023.1 or greater
+- wundergroundpws v1.0.2 requires Home Assistant Version 2022.11 or greater
 - Registered and active Weather Underground personal weather station API key 
 
 # Weather Underground PWS API Key
@@ -123,6 +126,7 @@ TO UPGRADE FROM v0.8.X:
       type: string
       default: Coordinates defined in your `configuration.yaml`
 ```
+# Available Sensors
 ```yaml
   monitored_conditions:
 #      description: Conditions to display in the frontend. The following conditions can be monitored.
@@ -251,6 +255,40 @@ Note that the Weather Underground sensor is added to the entity_registry, so sec
     - sensor.wupws_weather_1d_metric_2
 ```
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
+
+# Sensors available in statistics
+
+* **class NONE**
+* sensor.wupws_uv
+* 
+* **class DEGREE**
+* sensor.wupws_winddir
+
+* 
+* **class RATE & SPEED**
+* sensor.wupws_precipRate
+* sensor.wupws_windGust
+* sensor.wupws_windSpeed
+* 
+* **class LENGTH**
+* sensor.wupws_precipTotal
+* 
+* **class PRESSURE**
+* sensor.wupws_pressure
+* 
+* **class HUMIDITY**
+* sensor.wupws_humidity
+* 
+* **class IRRADIANCE**
+* sensor.wupws_solarRadiation
+* 
+* **class TEMPERATURE**
+* sensor.wupws_dewpt
+* sensor.wupws_heatIndex
+* sensor.wupws_windChill
+* sensor.wupws_temp
+
+
 
 # Sample configuration.yaml
 ```yaml
