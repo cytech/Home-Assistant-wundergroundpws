@@ -111,7 +111,11 @@ TO UPGRADE FROM v0.8.X:
         required: true - Value of 'none' or 'decimal'
         type: string
     lang:
-      description: Specify the language that the API returns. The current list of all Wunderground language codes is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (en-US).
+      description: Specify the language that the API returns. The current list of all Wunderground language codes
+        is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). 
+        If not specified, it defaults to English (en-US).
+        Language settings from API are only applied to sensor state value of wupws_today_summary and 
+        friendly_name/state values of wupws_weather_1d thru wupws_weather_5d
       required: false
       type: string
       default: en-US
@@ -257,6 +261,8 @@ Note that the Weather Underground sensor is added to the entity_registry, so sec
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
 
 # Sensors available in statistics
+The following are wundergroundpws sensors exposed to the statistics card in Lovelace.  
+Note that only sensors of like units can be combined in a single card.  
 
 * **class NONE**
 * sensor.wupws_uv

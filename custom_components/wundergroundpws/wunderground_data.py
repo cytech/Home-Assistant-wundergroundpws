@@ -33,95 +33,24 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 class WUndergroundData:
     """Get data from WUnderground."""
-
-    condition_map: dict = {
-        'clear-night': [
-            "Clear",
-        ],
-        'cloudy': [
-            "Clouds",
-            "Cloudy",
-            "Flurries",
-        ],
-        'exceptional': [
-            "Fair",
-        ],
-        'fog': [
-            "Fog",
-            "Foggy"
-        ],
-        'hail': [
-            "Frz Rain",
-        ],
-        'lightning': [
-            'T-Storms',
-        ],
-        'lightning-rainy': [
-            "Rain/Thunder",
-        ],
-        'partlycloudy': [
-            "P Cloudy",
-        ],
-        'pouring': [
-            "Heavy Rain",
-        ],
-        'rainy': [
-            "Light Rain",
-            "Lgt Rain",
-            "Rain",
-            "Rain Shower",
-            "R/S Showers",
-            "Rain/Wind",
-            "Rn/Snw/Wind",
-            "Shower/Wind",
-            "Showers",
-            "Showers/Wind",
-            "Shwrs",
-            "T-Showers",
-            "Drizzle"
-        ],
-        'snowy': [
-            "Ice/Snow",
-            "Light Snow",
-            "Snow Shower",
-            "Snow Showers",
-            "Snow/Wind",
-            "Ice",
-            "Snw Shwrs",
-            "Snow"
-        ],
-        'snowy-rainy': [
-            "Rain/Snow",
-            "Rn/Snw"
-        ],
-        'sunny': [
-            "Sunny",
-            "M Sunny",
-        ],
-        'windy': [
-            "Clr/Wind",
-            "Fair/Wind",
-            "Sun/Wind"
-        ],
-        'windy-variant': [
-            "Cldy/Wind",
-            "Cloudy/Wind",
-            "P Cldy/Wind",
-        ],
+    # icon map supporting document TWC_Icon_Map.ods in repository
+    icon_condition_map: dict = {
+        'clear-night': [31, 33],
+        'cloudy': [26, 27, 28],
+        'exceptional': [0, 1, 2, 19, 21, 22, 36, 43],  # 44 is Not Available (N/A)
+        'fog': [20],
+        'hail': [17],
+        'lightning': [],
+        'lightning-rainy': [3, 4, 37, 38, 47],
+        'partlycloudy': [29, 30],
+        'pouring': [40],
+        'rainy': [9, 11, 12, 39, 45],
+        'snowy': [13, 14, 15, 16, 41, 42, 46],
+        'snowy-rainy': [5, 6, 7, 8, 10, 18, 25, 35],
+        'sunny': [32, 34],
+        'windy': [23, 24],
+        'windy-variant': []
     }
-    # List of modifiers to strip from condition descriptor
-    # This list needs to be sorted in order of decreasing length
-    condition_modifiers: list = (
-        'Early',
-        'Late',
-        'Near',
-        'Few',
-        'Sct',
-        'Iso',
-        'AM',
-        'PM',
-        'M',
-    )
 
     def __init__(self, hass, api_key, pws_id,
                  numeric_precision, unit_system_api, unit_system, lang,
@@ -177,39 +106,11 @@ class WUndergroundData:
             return None
 
     @classmethod
-    def _wxPhraseShort_to_condition(cls, wx_phrase_short):
-        """
-        Based on data at [0]
-        [0] https://wiki.webcore.co/TWC_Weather
-        --response from weather company API email after request of wxPhraseShort list--
-        The wxPhraseShort values are not available to be shared externally.
-        These strings are possible to be changed, and mapping these strings can lead to issues for client apps in the
-        future.
-        """
-        if not wx_phrase_short:
-            _LOGGER.warning(
-                'Empty wxPhraseShort in response from the Weather API.'
-                'This is usually due to the `lang` setting.'
-                'Please try unsetting it.'
-            )
-            return None
-        wx_phrase_short_clean = wx_phrase_short
-        for s in cls.condition_modifiers:
-            # _LOGGER.debug(f'before {wx_phrase_short}')
-            wx_phrase_short_clean = wx_phrase_short_clean.replace(s, '')
-            # _LOGGER.debug(f'after {wx_phrase_short_clean}')
-        wx_phrase_short_clean = wx_phrase_short_clean.strip()
-        for condition, phrases in cls.condition_map.items():
-            if wx_phrase_short_clean in phrases:
-                # _LOGGER.debug(
-                #     f'Mapping "{wx_phrase_short}" to {condition}'
-                # )
+    def _iconCode_to_condition(cls, icon_code):
+        for condition, iconcodes in cls.icon_condition_map.items():
+            if icon_code in iconcodes:
                 return condition
-        _LOGGER.warning(
-            f'Unsupported condition string "{wx_phrase_short}". '
-            'Please update WUndergroundData.condition_map '
-            'and/or WUndergroundData.condition_modifiers.'
-        )
+        _LOGGER.warning(f'Unmapped iconCode from TWC Api. (44 is Not Available (N/A)) "{icon_code}". ')
         return None
 
     def _build_url(self, baseurl):
@@ -245,11 +146,9 @@ class WUndergroundData:
             self._check_errors(url, result_current)
 
             if not self._longitude:
-                self._longitude = (result_current[FIELD_OBSERVATIONS]
-                [0][FIELD_LONGITUDE])
+                self._longitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LONGITUDE])
             if not self._latitude:
-                self._latitude = (result_current[FIELD_OBSERVATIONS]
-                [0][FIELD_LATITUDE])
+                self._latitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE])
 
             with async_timeout.timeout(10):
                 url = self._build_url(_RESOURCEFORECAST)

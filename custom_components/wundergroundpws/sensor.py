@@ -1,8 +1,7 @@
 """
 Support for WUndergroundPWS weather service.
-
 For more details about this platform, please refer to the documentation at
-https://github.com/cytech/Home-Assistant-wundergroundpws
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
 """
 from .const import (
     CONF_ATTRIBUTION,
@@ -28,7 +27,7 @@ from homeassistant.components import sensor
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity, SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
     CONF_MONITORED_CONDITIONS,
-    ATTR_ATTRIBUTION, UV_INDEX, DEGREE, UnitOfIrradiance)
+    ATTR_ATTRIBUTION, DEGREE, UnitOfIrradiance)
 
 import homeassistant.helpers.config_validation as cv
 
@@ -94,8 +93,7 @@ class WUCurrentConditionsSensorConfig(WUSensorConfig):
             icon=icon,
             unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement],
             device_state_attributes={
-                'date': lambda wu: wu.data['observations'][0][
-                    'obsTimeLocal']
+                'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
             },
             device_class=device_class,
             state_class=state_class
@@ -189,7 +187,7 @@ SENSOR_TYPES = {
         device_class=SensorDeviceClass.IRRADIANCE,
         state_class=SensorStateClass.MEASUREMENT),
     'uv': WUSensorConfig(
-        UV_INDEX, 'observations',
+        'UV Index', 'observations',
         value=lambda wu: str(wu.data['observations'][0]['uv']),
         unit_of_measurement='',
         icon="mdi:sunglasses",

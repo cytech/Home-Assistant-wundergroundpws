@@ -1,9 +1,8 @@
-'''
+"""
 Support for WUndergroundPWS weather service.
-
 For more details about this platform, please refer to the documentation at
-https://github.com/cytech/Home-Assistant-wundergroundpws
-'''
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
+"""
 
 DOMAIN = 'wundergroundpws'
 MANUFACTURER = 'WeatherUnderground'
@@ -27,10 +26,9 @@ LANG_CODES = [
     'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'ti-ER', 'ti-ET', 'tg-TJ', 'th-TH',
     'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
 ]
-# Only the TWC  5 day forecast API handles the translation of phrases for values of the following data.
+# Only the TWC  5-day forecast API handles the translation of phrases for values of the following data.
 # However, when formatting a request URL a valid language must be passed along.
 # dayOfWeek,daypartName,moonPhase,narrative,qualifierPhrase,uvDescription,windDirectionCardinal,windPhrase,wxPhraseLong
-
 
 
 DEFAULT_LANG = 'en-US'
@@ -63,3 +61,4 @@ FIELD_FORECAST_WINDDIRECTIONCARDINAL = 'windDirectionCardinal'
 FIELD_FORECAST_WINDSPEED = 'windSpeed'
 FIELD_FORECAST_WXPHRASESHORT = 'wxPhraseShort'
 FIELD_FORECAST_WXPHRASELONG = 'wxPhraseLong'
+FIELD_FORECAST_ICONCODE = 'iconCode'

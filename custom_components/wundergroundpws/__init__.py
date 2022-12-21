@@ -1,4 +1,4 @@
-'''The wundergroundpws component.'''
+"""The wundergroundpws component."""
 
 import logging
 
@@ -19,7 +19,6 @@ from .const import (
     CONF_PWS_ID,
 
     DOMAIN,
-    NAME,
 
     ENTRY_PWS_ID,
     ENTRY_WEATHER_COORDINATOR,
@@ -54,7 +53,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
-    '''Set up the WUnderground sensor.'''
+    """Set up the WUnderground sensor."""
 
     platform_config = config.get(DOMAIN)
 
