@@ -3,6 +3,7 @@ Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
 https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
 """
+
 from .const import (
     CONF_ATTRIBUTION,
     DOMAIN,
@@ -14,7 +15,7 @@ from .const import (
     SPEEDUNIT,
     PRESSUREUNIT,
     RATE,
-    PERCENTAGEUNIT,
+    PERCENTAGEUNIT, ENTRY_TRAN_FILE,
 )
 
 import logging
@@ -112,10 +113,10 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
         """
         super().__init__(
             friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period]
-            if (wu.data['daypart'][0]['daypartName'][period] is not None) else 'Expired',
+            if (wu.data['daypart'][0]['daypartName'][period] is not None) else 'N/A',
             feature='forecast',
             value=lambda wu: wu.data['daypart'][0]['narrative'][period]
-            if (wu.data['daypart'][0]['narrative'][period] is not None) else 'Expired',
+            if (wu.data['daypart'][0]['narrative'][period] is not None) else 'N/A',
             entity_picture=lambda wu: '/local/wupws_icons/' +
                                       str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
             device_state_attributes={
@@ -141,7 +142,7 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
             friendly_name=friendly_name,
             feature='forecast',
             value=lambda wu: wu.data['daypart'][0][field][period]
-            if (wu.data['daypart'][0][field][period] is not None) else 'Expired',
+            if (wu.data['daypart'][0][field][period] is not None) else 'N/A',
             unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement]
             if (wu.data['daypart'][0][field][period] is not None) else '',
             entity_picture=lambda wu: str(
@@ -462,6 +463,8 @@ class WUndergroundSensor(SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
+        if self._condition in self.hass.data[DOMAIN][ENTRY_TRAN_FILE].keys():
+            return self.hass.data[DOMAIN][ENTRY_TRAN_FILE][self._condition]
         return self._cfg_expand("friendly_name")
 
     @property
@@ -519,3 +522,4 @@ class WUndergroundSensor(SensorEntity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return self._unique_id
+

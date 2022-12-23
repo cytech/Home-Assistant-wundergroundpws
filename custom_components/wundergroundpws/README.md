@@ -24,6 +24,8 @@ Thanks to @shtrom for ALL the work on this update!
 
 [Sample configuration.yaml](#sample-configurationyaml)
 
+[Localization](#localization)
+
 # Installation Prerequisites
 Please review the minimum requirements below to determine whether you will be able to
 install and use the software.
@@ -112,10 +114,8 @@ TO UPGRADE FROM v0.8.X:
         type: string
     lang:
       description: Specify the language that the API returns. The current list of all Wunderground language codes
-        is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). 
+        is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#) or below. 
         If not specified, it defaults to English (en-US).
-        Language settings from API are only applied to sensor state value of wupws_today_summary and 
-        friendly_name/state values of wupws_weather_1d thru wupws_weather_5d
       required: false
       type: string
       default: en-US
@@ -369,3 +369,22 @@ sensor:
       - windGust
       - windSpeed
 ```
+
+# Localization
+
+Sensor "friendly names" are set via translation files.  
+The default is en-US (translations/en.json) if the lang: option is not set in the wundergroundpws config.  
+If lang: is set (i.e.  lang: de-DE), then the translations/de.json file is loaded, and the Weather Underground API is queried with de-DE.    
+The translation file applies to all sensor friendly names, EXCEPT wupws_weather_1d thru wupws_weather_5d.  
+wupws_weather_1d thru wupws_weather_5d translations are supplied by the Weather Underground API.  
+Available lang: options are:  
+```
+'am-ET', 'ar-AE', 'az-AZ', 'bg-BG', 'bn-BD', 'bn-IN', 'bs-BA', 'ca-ES', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-GB',
+'en-IN', 'en-US', 'es-AR', 'es-ES', 'es-LA', 'es-MX', 'es-UN', 'es-US', 'et-EE', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR',
+'gu-IN', 'he-IL', 'hi-IN', 'hr-HR', 'hu-HU', 'in-ID', 'is-IS', 'it-IT', 'iw-IL', 'ja-JP', 'jv-ID', 'ka-GE', 'kk-KZ',
+'km-KH', 'kn-IN', 'ko-KR', 'lo-LA', 'lt-LT', 'lv-LV', 'mk-MK', 'mn-MN', 'mr-IN', 'ms-MY', 'my-MM', 'ne-IN', 'ne-NP',
+'nl-NL', 'no-NO', 'om-ET', 'pa-IN', 'pa-PK', 'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'ru-RU', 'si-LK', 'sk-SK', 'sl-SI',
+'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'ti-ER', 'ti-ET', 'tg-TJ', 'th-TH',
+'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
+```
+Weather Entity (hass weather card) translations are handled by Home Assistant and configured under the user -> language setting.

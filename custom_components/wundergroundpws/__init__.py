@@ -1,5 +1,5 @@
 """The wundergroundpws component."""
-
+import json
 import logging
 
 import voluptuous as vol
@@ -24,7 +24,7 @@ from .const import (
     ENTRY_WEATHER_COORDINATOR,
 
     LANG_CODES,
-    DEFAULT_LANG,
+    DEFAULT_LANG, ENTRY_LANG, ENTRY_TRAN_FILE,
 )
 from .wunderground_data import WUndergroundData
 
@@ -50,6 +50,20 @@ CONFIG_SCHEMA = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
+
+
+"""get translation file for wupws sensor friendly_name"""
+def get_tran_file(hass: HomeAssistantType):
+    tfiledir = f'{hass.config.config_dir}/custom_components/{DOMAIN}/translations/'
+    tfilename = hass.data[DOMAIN][ENTRY_LANG].split('-', 1)[0]
+    try:
+        tfile = open(f'{tfiledir}{tfilename}.json')
+        tfiledata = json.load(tfile)
+    except:
+        tfile = open(f'{tfiledir}en.json')
+        tfiledata = json.load(tfile)
+        _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en-US.')
+    return tfiledata
 
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
@@ -88,6 +102,9 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     hass.data[DOMAIN] = {
         ENTRY_WEATHER_COORDINATOR: rest,
         ENTRY_PWS_ID: pws_id,
+        ENTRY_LANG: lang
     }
+
+    hass.data[DOMAIN].update({ENTRY_TRAN_FILE: get_tran_file(hass)})
 
     return True

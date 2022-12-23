@@ -15,6 +15,8 @@ CONF_LANG = 'lang'
 
 ENTRY_PWS_ID = 'pws_id'
 ENTRY_WEATHER_COORDINATOR = 'weather_coordinator'
+ENTRY_LANG = 'lang'
+ENTRY_TRAN_FILE = 'tranfile'
 
 # Language Supported Codes
 LANG_CODES = [

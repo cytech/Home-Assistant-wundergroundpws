@@ -9,6 +9,7 @@ Replace condition mapping from wxPhraseShort to iconCode
   - Note: Only the TWC  5-day forecast API handles the translation of phrases for values of the following data.
         dayOfWeek, daypartName, moonPhase, narrative, qualifierPhrase, uvDescription, windDirectionCardinal, windPhrase, wxPhraseLong
 
+Added localization mechanism for wupws sensor friendly names.
 Fix/rework sensor device_class and state_class for statistics  
 update wunderground language codes
 
