@@ -43,7 +43,7 @@ CONFIG_SCHEMA = vol.Schema(
         DOMAIN: {
             vol.Required(CONF_API_KEY): cv.string,
             vol.Exclusive(CONF_PWS_ID, 'pws_id'): cv.string,
-            vol.Exclusive(CONF_PWS_IDS, 'pws_id'): list[cv.string],
+            vol.Exclusive(CONF_PWS_IDS, 'pws_id'): list,
             vol.Required(CONF_NUMERIC_PRECISION):
                 vol.All(vol.In(['none', 'decimal'])),
 
