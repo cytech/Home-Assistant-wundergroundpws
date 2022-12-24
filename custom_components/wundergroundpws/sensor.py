@@ -118,6 +118,7 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for daily text forecasts.
     Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
     will appear as null in the API after 3:00pm Local Apparent Time. """
+
     def __init__(self, period):
         """Constructor.
         Args:
@@ -166,7 +167,7 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
             },
             device_class=device_class,
-            state_class = state_class
+            state_class=state_class
         )
 
 
@@ -430,8 +431,9 @@ class WUndergroundSensor(Entity):
         self.rest.request_feature(SENSOR_TYPES[condition].feature)
         # This is only the suggested entity id, it might get changed by
         # the entity registry later.
-        self.entity_id = sensor.ENTITY_ID_FORMAT.format('wupws_' + condition)
-        self._unique_id = "{},{}".format(unique_id_base, condition)
+        self._unique_id = f'{unique_id_base}.{condition}'
+        self.entity_id = sensor.ENTITY_ID_FORMAT.format(
+            f'wundergroundpws.{self.unique_id}')
         self._device_class = self._cfg_expand("device_class")
         self._state_class = self._cfg_expand("state_class")
 
