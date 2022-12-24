@@ -98,8 +98,7 @@ class WUWeather(WeatherEntity):
             name=NAME,
         )
         self._rest = wunderground_data
-        self.entity_id = ENTITY_ID_FORMAT.format(
-            f'wundergroundpws.{self.unique_id}')
+        self.entity_id = ENTITY_ID_FORMAT.format('wundergroundpws')
 
     @property
     def native_temperature(self) -> float:
