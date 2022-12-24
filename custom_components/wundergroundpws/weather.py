@@ -74,7 +74,7 @@ async def async_setup_platform(
     domain_data = hass.data[DOMAIN]
     rest = domain_data[ENTRY_WEATHER_COORDINATOR]
 
-    unique_id = hass.data[DOMAIN][ENTRY_PWS_IDS]
+    unique_id = hass.data[DOMAIN][ENTRY_PWS_IDS][0]
 
     wu_weather = WUWeather(unique_id, unique_id, rest)
     async_add_entities([wu_weather], False)
