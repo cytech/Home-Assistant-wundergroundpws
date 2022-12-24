@@ -12,7 +12,7 @@ from .const import (
 
     DOMAIN,
 
-    ENTRY_PWS_ID,
+    ENTRY_PWS_IDS,
     ENTRY_WEATHER_COORDINATOR,
 
     TEMPUNIT,
@@ -403,7 +403,7 @@ async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
     # else:
     #     # Manually specified weather station, use that for unique_id
     #     unique_id_base = pws_id
-    unique_id_base = hass.data[DOMAIN][ENTRY_PWS_ID]
+    unique_id_base = hass.data[DOMAIN][ENTRY_PWS_IDS]
     sensors = []
 
     for variable in config[CONF_MONITORED_CONDITIONS]:
