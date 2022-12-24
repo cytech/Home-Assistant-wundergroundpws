@@ -17,11 +17,12 @@ from .const import (
     CONF_LANG,
     CONF_NUMERIC_PRECISION,
     CONF_PWS_ID,
+    CONF_PWS_IDS,
 
     DOMAIN,
     NAME,
 
-    ENTRY_PWS_ID,
+    ENTRY_PWS_IDS,
     ENTRY_WEATHER_COORDINATOR,
 
     LANG_CODES,
@@ -31,11 +32,18 @@ from .wunderground_data import WUndergroundData
 
 _LOGGER = logging.getLogger(__name__)
 
+
+def either_pws_id_required(config):
+    if not config[CONF_PWS_ID] and not config[CONF_PWS_IDS]:
+        raise Invalid('{CONF_PWS_IDS} required if {CONF_PWS_ID} not provided')
+
+
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: {
             vol.Required(CONF_API_KEY): cv.string,
-            vol.Required(CONF_PWS_ID): cv.string,
+            vol.Exclusive(CONF_PWS_ID, 'pws_id'): cv.string,
+            vol.Exclusive(CONF_PWS_IDS, 'pws_id'): list[cv.string],
             vol.Required(CONF_NUMERIC_PRECISION):
                 vol.All(vol.In(['none', 'decimal'])),
 
@@ -59,7 +67,9 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     platform_config = config.get(DOMAIN)
 
     api_key = platform_config.get(CONF_API_KEY)
-    pws_id = platform_config.get(CONF_PWS_ID)
+    pws_ids = platform_config.get(CONF_PWS_IDS)
+    if not pws_ids:
+        pws_ids = [platform_config.get(CONF_PWS_ID)]
     # XXX: Could get the lat/long from the PWS
     latitude = platform_config.get(CONF_LATITUDE)
     longitude = platform_config.get(CONF_LONGITUDE)
@@ -77,7 +87,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
 
     rest = WUndergroundData(
         hass,
-        api_key, pws_id, numeric_precision,
+        api_key, pws_ids, numeric_precision,
         unit_system_api, unit_system,
         lang,
         latitude, longitude)
@@ -88,7 +98,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
 
     hass.data[DOMAIN] = {
         ENTRY_WEATHER_COORDINATOR: rest,
-        ENTRY_PWS_ID: pws_id,
+        ENTRY_PWS_IDS: pws_ids,
     }
 
     return True

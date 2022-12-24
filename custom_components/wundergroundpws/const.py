@@ -11,10 +11,11 @@ NAME = 'WeatherUnderground'
 
 CONF_ATTRIBUTION = 'Data provided by the WUnderground weather service'
 CONF_PWS_ID = 'pws_id'
+CONF_PWS_IDS = 'pws_ids'
 CONF_NUMERIC_PRECISION = 'numeric_precision'
 CONF_LANG = 'lang'
 
-ENTRY_PWS_ID = 'pws_id'
+ENTRY_PWS_IDS = 'pws_ids'
 ENTRY_WEATHER_COORDINATOR = 'weather_coordinator'
 
 # Language Supported Codes

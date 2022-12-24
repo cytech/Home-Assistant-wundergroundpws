@@ -127,13 +127,13 @@ class WUndergroundData:
         'M',
     )
 
-    def __init__(self, hass, api_key, pws_id,
+    def __init__(self, hass, api_key, pws_ids,
                  numeric_precision, unit_system_api, unit_system, lang,
                  latitude, longitude):
         """Initialize the data object."""
         self._hass = hass
         self._api_key = api_key
-        self._pws_id = pws_id
+        self._pws_ids = pws_ids
         self._numeric_precision = numeric_precision
         self._unit_system_api = unit_system_api
         self.unit_system = unit_system
@@ -226,7 +226,7 @@ class WUndergroundData:
             latitude=self._latitude,
             longitude=self._longitude,
             numericPrecision=self._numeric_precision,
-            stationId=self._pws_id,
+            stationId=self._pws_ids[0],
             units=self._unit_system_api
         )
 
