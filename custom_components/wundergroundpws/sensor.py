@@ -4,56 +4,49 @@ Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
 https://github.com/cytech/Home-Assistant-wundergroundpws
 """
+from .const import (
+    CONF_ATTRIBUTION,
+    CONF_PWS_ID,
+    CONF_NUMERIC_PRECISION,
+    CONF_LANG,
+
+    DOMAIN,
+
+    ENTRY_PWS_ID,
+    ENTRY_WEATHER_COORDINATOR,
+
+    TEMPUNIT,
+    LENGTHUNIT,
+    ALTITUDEUNIT,
+    SPEEDUNIT,
+    PRESSUREUNIT,
+    RATE,
+    PERCENTAGEUNIT,
+)
 import asyncio
-from datetime import timedelta
 import logging
 import re
 
-import aiohttp
-import async_timeout
 import voluptuous as vol
 
 from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.components import sensor
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE,
-    TEMP_FAHRENHEIT, TEMP_CELSIUS, LENGTH_INCHES,
-    LENGTH_FEET, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_MILES_PER_HOUR, SPEED_KILOMETERS_PER_HOUR,
-    PERCENTAGE, PRESSURE_INHG, PRESSURE_MBAR, PRECIPITATION_INCHES_PER_HOUR, PRECIPITATION_MILLIMETERS_PER_HOUR,
+    CONF_MONITORED_CONDITIONS,
     ATTR_ATTRIBUTION)
-from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
-from homeassistant.util.unit_system import METRIC_SYSTEM
+
+from .wunderground_data import WUndergroundData
 
 # import homeassistant.config as config
 
-_RESOURCECURRENT = 'https://api.weather.com/v2/pws/observations/current?stationId={}&format=json&units={}&apiKey={}'
-_RESOURCEFORECAST = 'https://api.weather.com/v3/wx/forecast/daily/5day?geocode={},{}&units={}&{}&format=json&apiKey={}'
 _LOGGER = logging.getLogger(__name__)
-
-CONF_ATTRIBUTION = "Data provided by the WUnderground weather service"
-CONF_PWS_ID = 'pws_id'
-CONF_NUMERIC_PRECISION = 'numeric_precision'
-CONF_LANG = 'lang'
-
-DEFAULT_LANG = 'en-US'
-
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
-
-TEMPUNIT = 0
-LENGTHUNIT = 1
-ALTITUDEUNIT = 2
-SPEEDUNIT = 3
-PRESSUREUNIT = 4
-RATE = 5
-PERCENTAGEUNIT = 6
 
 
 # Helper classes for declaring sensor configurations
+
 
 class WUSensorConfig:
     """WU Sensor Configuration.
@@ -65,7 +58,7 @@ class WUSensorConfig:
     def __init__(self, friendly_name, feature, value,
                  unit_of_measurement=None, entity_picture=None,
                  icon="mdi:gauge", device_state_attributes=None,
-                 device_class=None):
+                 device_class=None, state_class=None):
         """Constructor.
         Args:
             friendly_name (string|func): Friendly name
@@ -88,13 +81,14 @@ class WUSensorConfig:
         self.icon = icon
         self.device_state_attributes = device_state_attributes or {}
         self.device_class = device_class
+        self.state_class = state_class
 
 
 class WUCurrentConditionsSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for current conditions."""
 
     def __init__(self, friendly_name, field, icon="mdi:gauge",
-                 unit_of_measurement=None, device_class=None):
+                 unit_of_measurement=None, device_class=None, state_class=None):
         """Constructor.
 
         Args:
@@ -115,23 +109,28 @@ class WUCurrentConditionsSensorConfig(WUSensorConfig):
                 'date': lambda wu: wu.data['observations'][0][
                     'obsTimeLocal']
             },
-            device_class=device_class
+            device_class=device_class,
+            state_class=state_class
         )
 
 
 class WUDailyTextForecastSensorConfig(WUSensorConfig):
-    """Helper for defining sensor configurations for daily text forecasts."""
-
+    """Helper for defining sensor configurations for daily text forecasts.
+    Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
+    will appear as null in the API after 3:00pm Local Apparent Time. """
     def __init__(self, period):
         """Constructor.
         Args:
             period (int): forecast period number
         """
         super().__init__(
-            friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period],
+            friendly_name=lambda wu: wu.data['daypart'][0]['daypartName'][period]
+            if (wu.data['daypart'][0]['daypartName'][period] is not None) else 'Expired',
             feature='forecast',
-            value=lambda wu: wu.data['daypart'][0]['narrative'][period],
-            entity_picture=lambda wu: '/local/wupws_icons/' + str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
+            value=lambda wu: wu.data['daypart'][0]['narrative'][period]
+            if(wu.data['daypart'][0]['narrative'][period] is not None) else 'Expired',
+            entity_picture=lambda wu: '/local/wupws_icons/' +
+            str(wu.data['daypart'][0]['iconCode'][period]) + '.png',
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
             }
@@ -139,10 +138,12 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
 
 
 class WUDailySimpleForecastSensorConfig(WUSensorConfig):
-    """Helper for defining sensor configurations for daily simpleforecasts."""
+    """Helper for defining sensor configurations for daily simpleforecasts.
+    Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
+    will appear as null in the API after 3:00pm Local Apparent Time. """
 
     def __init__(self, friendly_name, period, field,
-                 unit_of_measurement=None, icon=None, device_class=None):
+                 unit_of_measurement=None, icon=None, device_class=None, state_class=None):
         """Constructor.
 
         Args:
@@ -154,14 +155,18 @@ class WUDailySimpleForecastSensorConfig(WUSensorConfig):
         super().__init__(
             friendly_name=friendly_name,
             feature='forecast',
-            value=(lambda wu: wu.data['daypart'][0][field][period]),
-            unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement],
-            entity_picture=lambda wu: str(wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
+            value=lambda wu: wu.data['daypart'][0][field][period]
+            if(wu.data['daypart'][0][field][period] is not None) else 'Expired',
+            unit_of_measurement=lambda wu: wu.units_of_measurement[unit_of_measurement]
+            if(wu.data['daypart'][0][field][period] is not None) else '',
+            entity_picture=lambda wu: str(
+                wu.data['daypart'][0]['iconCode'][period]) if not icon else None,
             icon=icon,
             device_state_attributes={
                 'date': lambda wu: wu.data['observations'][0]['obsTimeLocal']
             },
-            device_class=device_class
+            device_class=device_class,
+            state_class = state_class
         )
 
 
@@ -183,7 +188,8 @@ SENSOR_TYPES = {
         value=lambda wu: int(wu.data['observations'][0]['humidity'] or 0),
         unit_of_measurement='%',
         icon="mdi:water-percent",
-        device_class="humidity"),
+        device_class="humidity",
+        state_class="measurement"),
     'stationID': WUSensorConfig(
         'Station ID', 'observations',
         value=lambda wu: wu.data['observations'][0]['stationID'],
@@ -192,20 +198,24 @@ SENSOR_TYPES = {
         'Solar Radiation', 'observations',
         value=lambda wu: str(wu.data['observations'][0]['solarRadiation']),
         unit_of_measurement='w/m2',
-        icon="mdi:weather-sunny"),
+        icon="mdi:weather-sunny",
+        state_class="measurement"),
     'uv': WUSensorConfig(
         'UV', 'observations',
         value=lambda wu: str(wu.data['observations'][0]['uv']),
         unit_of_measurement='',
-        icon="mdi:sunglasses", ),
+        icon="mdi:sunglasses",
+        state_class="measurement"),
     'winddir': WUSensorConfig(
         'Wind Direction', 'observations',
         value=lambda wu: int(wu.data['observations'][0]['winddir'] or 0),
         unit_of_measurement='\u00b0',
-        icon="mdi:weather-windy"),
+        icon="mdi:weather-windy",
+        state_class="measurement"),
     'windDirectionName': WUSensorConfig(
         'Wind Direction', 'observations',
-        value=lambda wu: wind_direction_to_friendly_name(int(wu.data['observations'][0]['winddir'] or -1)),
+        value=lambda wu: wind_direction_to_friendly_name(
+            int(wu.data['observations'][0]['winddir'] or -1)),
         unit_of_measurement='',
         icon="mdi:weather-windy"),
     'today_summary': WUSensorConfig(
@@ -217,25 +227,25 @@ SENSOR_TYPES = {
     'elev': WUCurrentConditionsSensorConfig(
         'Elevation', 'elev', 'mdi:elevation-rise', ALTITUDEUNIT),
     'dewpt': WUCurrentConditionsSensorConfig(
-        'Dewpoint', 'dewpt', 'mdi:water', TEMPUNIT),
+        'Dewpoint', 'dewpt', 'mdi:water', TEMPUNIT, state_class="measurement"),
     'heatIndex': WUCurrentConditionsSensorConfig(
-        'Heat index', 'heatIndex', "mdi:thermometer", TEMPUNIT),
+        'Heat index', 'heatIndex', "mdi:thermometer", TEMPUNIT, state_class="measurement"),
     'windChill': WUCurrentConditionsSensorConfig(
-        'Wind chill', 'windChill', "mdi:thermometer", TEMPUNIT),
+        'Wind chill', 'windChill', "mdi:thermometer", TEMPUNIT, state_class="measurement"),
     'precipRate': WUCurrentConditionsSensorConfig(
-        'Precipitation Rate', 'precipRate', "mdi:umbrella", RATE),
+        'Precipitation Rate', 'precipRate', "mdi:umbrella", RATE, state_class="measurement"),
     'precipTotal': WUCurrentConditionsSensorConfig(
-        'Precipitation Today', 'precipTotal', "mdi:umbrella", LENGTHUNIT),
+        'Precipitation Today', 'precipTotal', "mdi:umbrella", LENGTHUNIT, state_class="measurement"),
     'pressure': WUCurrentConditionsSensorConfig(
         'Pressure', 'pressure', "mdi:gauge", PRESSUREUNIT,
-        device_class="pressure"),
+        device_class="pressure", state_class="measurement"),
     'temp': WUCurrentConditionsSensorConfig(
         'Temperature', 'temp', "mdi:thermometer", TEMPUNIT,
-        device_class="temperature"),
+        device_class="temperature", state_class="measurement"),
     'windGust': WUCurrentConditionsSensorConfig(
-        'Wind Gust', 'windGust', "mdi:weather-windy", SPEEDUNIT),
+        'Wind Gust', 'windGust', "mdi:weather-windy", SPEEDUNIT, state_class="measurement"),
     'windSpeed': WUCurrentConditionsSensorConfig(
-        'Wind Speed', 'windSpeed', "mdi:weather-windy", SPEEDUNIT),
+        'Wind Speed', 'windSpeed', "mdi:weather-windy", SPEEDUNIT, state_class="measurement"),
     # forecast
     'weather_1d': WUDailyTextForecastSensorConfig(0),
     'weather_1n': WUDailyTextForecastSensorConfig(1),
@@ -249,80 +259,96 @@ SENSOR_TYPES = {
     'weather_5n': WUDailyTextForecastSensorConfig(9),
     'temp_high_1d': WUDailySimpleForecastSensorConfig(
         "High Temperature Today", 0, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_high_2d': WUDailySimpleForecastSensorConfig(
         "High Temperature Tomorrow", 2, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_high_3d': WUDailySimpleForecastSensorConfig(
         "High Temperature in 3 Days", 4, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_high_4d': WUDailySimpleForecastSensorConfig(
         "High Temperature in 4 Days", 6, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_high_5d': WUDailySimpleForecastSensorConfig(
         "High Temperature in 5 Days", 8, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_low_1d': WUDailySimpleForecastSensorConfig(
         "Low Temperature Today", 1, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_low_2d': WUDailySimpleForecastSensorConfig(
         "Low Temperature Tomorrow", 3, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_low_3d': WUDailySimpleForecastSensorConfig(
         "Low Temperature in 3 Days", 5, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_low_4d': WUDailySimpleForecastSensorConfig(
         "Low Temperature in 4 Days", 7, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'temp_low_5d': WUDailySimpleForecastSensorConfig(
         "Low Temperature in 5 Days", 9, "temperature", TEMPUNIT,
-        "mdi:thermometer", device_class="temperature"),
+        "mdi:thermometer", device_class="temperature", state_class="measurement"),
     'wind_1d': WUDailySimpleForecastSensorConfig(
         "Avg. Wind Today", 0, "windSpeed", SPEEDUNIT,
-        "mdi:weather-windy"),
+        "mdi:weather-windy", state_class="measurement"),
     'wind_2d': WUDailySimpleForecastSensorConfig(
         "Avg. Wind Tomorrow", 2, "windSpeed", SPEEDUNIT,
-        "mdi:weather-windy"),
+        "mdi:weather-windy", state_class="measurement"),
     'wind_3d': WUDailySimpleForecastSensorConfig(
         "Avg. Wind in 3 Days", 4, "windSpeed", SPEEDUNIT,
-        "mdi:weather-windy"),
+        "mdi:weather-windy", state_class="measurement"),
     'wind_4d': WUDailySimpleForecastSensorConfig(
         "Avg. Wind in 4 Days", 6, "windSpeed", SPEEDUNIT,
-        "mdi:weather-windy"),
+        "mdi:weather-windy", state_class="measurement"),
     'wind_5d': WUDailySimpleForecastSensorConfig(
         "Avg. Wind in 5 Days", 8, "windSpeed", SPEEDUNIT,
-        "mdi:weather-windy"),
+        "mdi:weather-windy", state_class="measurement"),
     'precip_1d': WUDailySimpleForecastSensorConfig(
         "Precipitation Intensity Today", 0, 'qpf', LENGTHUNIT,
-        "mdi:umbrella"),
+        "mdi:umbrella", state_class="measurement"),
     'precip_2d': WUDailySimpleForecastSensorConfig(
         "Precipitation Intensity Tomorrow", 2, 'qpf', LENGTHUNIT,
-        "mdi:umbrella"),
+        "mdi:umbrella", state_class="measurement"),
     'precip_3d': WUDailySimpleForecastSensorConfig(
         "Precipitation Intensity in 3 Days", 4, 'qpf', LENGTHUNIT,
-        "mdi:umbrella"),
+        "mdi:umbrella", state_class="measurement"),
     'precip_4d': WUDailySimpleForecastSensorConfig(
         "Precipitation Intensity in 4 Days", 6, 'qpf', LENGTHUNIT,
-        "mdi:umbrella"),
+        "mdi:umbrella", state_class="measurement"),
     'precip_5d': WUDailySimpleForecastSensorConfig(
         "Precipitation Intensity in 5 Days", 8, 'qpf', LENGTHUNIT,
-        "mdi:umbrella"),
+        "mdi:umbrella", state_class="measurement"),
     'precip_chance_1d': WUDailySimpleForecastSensorConfig(
         "Precipitation Probability Today", 0, "precipChance", PERCENTAGEUNIT,
-        "mdi:umbrella"),
+        "mdi:umbrella", state_class="measurement"),
     'precip_chance_2d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability Tomorrow", 2, "precipChance", PERCENTAGEUNIT,
-        "mdi:umbrella"),
+        "Precipitation Probability Tomorrow (Day)", 2, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
     'precip_chance_3d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 3 Days", 4, "precipChance", PERCENTAGEUNIT,
-        "mdi:umbrella"),
+        "Precipitation Probability in 3 Days (Day)", 4, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
     'precip_chance_4d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 4 Days", 6, "precipChance", PERCENTAGEUNIT,
-        "mdi:umbrella"),
+        "Precipitation Probability in 4 Days (Day)", 6, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
     'precip_chance_5d': WUDailySimpleForecastSensorConfig(
-        "Precipitation Probability in 5 Days", 8, "precipChance", PERCENTAGEUNIT,
-        "mdi:umbrella"),
+        "Precipitation Probability in 5 Days (Day)", 8, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
+    'precip_chance_1n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability Tonight", 1, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
+    'precip_chance_2n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability Tomorrow Night", 3, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
+    'precip_chance_3n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability in 3 Days (Night)", 5, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
+    'precip_chance_4n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability in 4 Days (Night)", 7, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
+    'precip_chance_5n': WUDailySimpleForecastSensorConfig(
+        "Precipitation Probability in 5 Days (Night)", 9, "precipChance", PERCENTAGEUNIT,
+        "mdi:umbrella", state_class="measurement"),
 }
+
 
 def wind_direction_to_friendly_name(argument):
     if (argument < 0):
@@ -361,25 +387,8 @@ def wind_direction_to_friendly_name(argument):
         return "NNW"
     return ""
 
-# Language Supported Codes
-LANG_CODES = [
-    'ar-AE', 'az-AZ', 'bg-BG', 'bn-BD', 'bn-IN', 'bs-BA', 'ca-ES', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-GB', 'en-IN',
-    'en-US', 'es-AR', 'es-ES', 'es-LA', 'es-MX', 'es-UN', 'es-US', 'et-EE', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR', 'gu-IN',
-    'he-IL', 'hi-IN', 'hr-HR', 'hu-HU', 'in-ID', 'is-IS', 'it-IT', 'iw-IL', 'ja-JP', 'jv-ID', 'ka-GE', 'kk-KZ', 'kn-IN',
-    'ko-KR', 'lt-LT', 'lv-LV', 'mk-MK', 'mn-MN', 'ms-MY', 'nl-NL', 'no-NO', 'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'ru-RU',
-    'si-LK', 'sk-SK', 'sl-SI', 'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'tg-TJ',
-    'th-TH', 'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
-]
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_API_KEY): cv.string,
-    vol.Required(CONF_PWS_ID): cv.string,
-    vol.Required(CONF_NUMERIC_PRECISION): cv.string,
-    vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.All(vol.In(LANG_CODES)),
-    vol.Inclusive(CONF_LATITUDE, 'coordinates',
-                  'Latitude and longitude must exist together'): cv.latitude,
-    vol.Inclusive(CONF_LONGITUDE, 'coordinates',
-                  'Latitude and longitude must exist together'): cv.longitude,
     vol.Required(CONF_MONITORED_CONDITIONS):
         vol.All(cv.ensure_list, vol.Length(min=1), [vol.In(SENSOR_TYPES)])
 })
@@ -387,36 +396,18 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
                                async_add_entities, discovery_info=None):
-    """Set up the WUnderground sensor."""
-    latitude = config.get(CONF_LATITUDE, hass.config.latitude)
-    longitude = config.get(CONF_LONGITUDE, hass.config.longitude)
-    pws_id = config.get(CONF_PWS_ID)
-    numeric_precision = config.get(CONF_NUMERIC_PRECISION)
+    rest = hass.data[DOMAIN][ENTRY_WEATHER_COORDINATOR]
 
-    if hass.config.units is METRIC_SYSTEM:
-        unit_system_api = 'm'
-        unit_system = 'metric'
-    else:
-        unit_system_api = 'e'
-        unit_system = 'imperial'
-
-    rest = WUndergroundData(
-        hass, config.get(CONF_API_KEY), pws_id, numeric_precision, unit_system_api, unit_system,
-        config.get(CONF_LANG), latitude, longitude)
-
-    if pws_id is None:
-        unique_id_base = "@{:06f},{:06f}".format(longitude, latitude)
-    else:
-        # Manually specified weather station, use that for unique_id
-        unique_id_base = pws_id
+    #     unique_id_base = "@{:06f},{:06f}".format(longitude, latitude)
+    # else:
+    #     # Manually specified weather station, use that for unique_id
+    #     unique_id_base = pws_id
+    unique_id_base = hass.data[DOMAIN][ENTRY_PWS_ID]
     sensors = []
+
     for variable in config[CONF_MONITORED_CONDITIONS]:
         sensors.append(WUndergroundSensor(hass, rest, variable,
                                           unique_id_base))
-
-    await rest.async_update()
-    if not rest.data:
-        raise PlatformNotReady
 
     async_add_entities(sensors, True)
 
@@ -442,6 +433,7 @@ class WUndergroundSensor(Entity):
         self.entity_id = sensor.ENTITY_ID_FORMAT.format('wupws_' + condition)
         self._unique_id = "{},{}".format(unique_id_base, condition)
         self._device_class = self._cfg_expand("device_class")
+        self._state_class = self._cfg_expand("state_class")
 
     def _cfg_expand(self, what, default=None):
         """Parse and return sensor data."""
@@ -509,6 +501,11 @@ class WUndergroundSensor(Entity):
         """Return the units of measurement."""
         return self._device_class
 
+    @property
+    def state_class(self):
+        """Return the state class."""
+        return self._state_class
+
     async def async_update(self):
         """Update current conditions."""
         await self.rest.async_update()
@@ -529,77 +526,3 @@ class WUndergroundSensor(Entity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return self._unique_id
-
-
-class WUndergroundData:
-    """Get data from WUnderground."""
-
-    def __init__(self, hass, api_key, pws_id, numeric_precision, unit_system_api, unit_system, lang, latitude,
-                 longitude):
-        """Initialize the data object."""
-        self._hass = hass
-        self._api_key = api_key
-        self._pws_id = pws_id
-        self._numeric_precision = numeric_precision
-        self._unit_system_api = unit_system_api
-        self.unit_system = unit_system
-        self.units_of_measurement = None
-        self._lang = 'language={}'.format(lang)
-        self._latitude = latitude
-        self._longitude = longitude
-        self._features = set()
-        self.data = None
-        self._session = async_get_clientsession(self._hass)
-
-        if unit_system_api == 'm':
-            self.units_of_measurement = (TEMP_CELSIUS, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_KILOMETERS_PER_HOUR,
-                                         PRESSURE_MBAR, PRECIPITATION_MILLIMETERS_PER_HOUR, PERCENTAGE)
-        else:
-            self.units_of_measurement = (TEMP_FAHRENHEIT, LENGTH_INCHES, LENGTH_FEET, SPEED_MILES_PER_HOUR,
-                                         PRESSURE_INHG, PRECIPITATION_INCHES_PER_HOUR, PERCENTAGE)
-
-    def request_feature(self, feature):
-        """Register feature to be fetched from WU API."""
-        self._features.add(feature)
-
-    def _build_url(self, baseurl):
-        if baseurl is _RESOURCECURRENT:
-            if self._numeric_precision == 'none':
-                url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key)
-            else:
-                url = baseurl.format(self._pws_id, self._unit_system_api, self._api_key) + '&numericPrecision=decimal'
-        else:
-            url = baseurl.format(self._latitude, self._longitude, self._unit_system_api, self._lang, self._api_key)
-
-        return url
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update(self):
-        """Get the latest data from WUnderground."""
-        headers = {'Accept-Encoding': 'gzip'}
-        try:
-            with async_timeout.timeout(10):
-                response = await self._session.get(self._build_url(_RESOURCECURRENT), headers=headers)
-            result_current = await response.json()
-
-            # need to check specific new api errors
-            # if "error" in result['response']:
-            #     raise ValueError(result['response']["error"]["description"])
-            # _LOGGER.debug('result_current' + str(result_current))
-
-            if result_current is None:
-                raise ValueError('NO CURRENT RESULT')
-            with async_timeout.timeout(10):
-                response = await self._session.get(self._build_url(_RESOURCEFORECAST), headers=headers)
-            result_forecast = await response.json()
-
-            if result_forecast is None:
-                raise ValueError('NO FORECAST RESULT')
-
-            result = {**result_current, **result_forecast}
-
-            self.data = result
-        except ValueError as err:
-            _LOGGER.error("Check WUnderground API %s", err.args)
-        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-            _LOGGER.error("Error fetching WUnderground data: %s", repr(err))

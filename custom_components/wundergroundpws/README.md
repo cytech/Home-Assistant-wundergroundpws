@@ -1,7 +1,4 @@
-# Home-Assistant-wundergroundpws v1.X.X
-
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
-
+# Home-Assistant-Wundergroundpws v1.X.X
 Home Assistant custom integration for Weather Underground personal weather station users.  
 Includes a native Home Assistant Weather Entity and a variety of weather sensors.  
 Current conditions are generated from the wundergroundpws configured pws_id.  
@@ -23,45 +20,34 @@ Thanks to @shtrom for ALL the work on this update!
 
 [Description of terms and variables](#description-of-terms-and-variables)
 
-To install, add this repository as custom repository for HACS and install the Weather Underground Personal Weather Station integration and copy the www directory into your .homeassistant directory.
-
-or
-
-copy the custom_components directory into your .homeassistant directory
-and the www directory into your .homeassistant directory.
-
 [Sample configuration.yaml](#sample-configurationyaml)
 
 # Installation Prerequisites
-
 Please review the minimum requirements below to determine whether you will be able to
 install and use the software.
 
 - Home Assistant Version 2022.11 or greater
-- Registered and active Weather Underground personal weather station API key
+- Registered and active Weather Underground personal weather station API key 
 
 # Weather Underground PWS API Key
-
 Free API keys are only issued to registered and active Weather Underground personal weather station users.  
 To use this integration, you need a Weather Underground personal weather station API key and Station ID.  
 To get a free API key:  
-
 1) You must have a personal weather station registered and uploading data to Weather Underground.  
     a) Join weather Underground  
     b) Sign In  
     c) My Profile -> My Weather Stations  
     d) Add a New PWS  
-2) get API key at  <https://www.wunderground.com/member/api-keys>.  
+2) get API key at  https://www.wunderground.com/member/api-keys.  
 
-The forecast is generated from the HA configured latitude/longitude.
+Please consider this when using the following information.
+
 
 # Installation
-
-Download the latest v1.X.X release zip file from this repository
+Download the latest v1.X.X release zip file from this repository.
 Extract the zip file to a temporary directory.
 -------
-
-Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.
+Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.    
 Copy the custom_components directory from the extracted file into your .homeassistant directory
 and the www directory from the extracted file into your .homeassistant directory.  
 or  
@@ -89,16 +75,13 @@ sensor:
       - dewpt
       - heatIndex
 ```
-
 Restart Home Assistant
 
 # Upgrade
-
 UPGRADE NOTE v1.0.0: BREAKING CHANGE -  Requires Home Assistant v 2022.11 or later.  
 REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
 See "Example configuration.yaml entry" above.  
 TO UPGRADE FROM v0.8.X:
-
 1. Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.
 2. Delete contents of existing "custom_components/wundergroundpws" directory.
 3. Download the latest v1.X.X release zip file from this repository.
@@ -108,8 +91,8 @@ TO UPGRADE FROM v0.8.X:
 7. Existing sensors in any entity cards should be the same.  
 8. In lovelace, add a "weather forecast" card selecting the "weather.YOUR_STATION_ID" entity and save.  
 
+        
 # Description of terms and variables
-
 ```yaml
   wundergroundpws:
     api_key:
@@ -140,7 +123,6 @@ TO UPGRADE FROM v0.8.X:
       type: string
       default: Coordinates defined in your `configuration.yaml`
 ```
-
 ```yaml
   monitored_conditions:
 #      description: Conditions to display in the frontend. The following conditions can be monitored.
@@ -203,9 +185,10 @@ TO UPGRADE FROM v0.8.X:
 
 All the conditions listed above will be updated every 5 minutes.  
 
-**_Wunderground API caveat:
+**_Wunderground API caveat:   
 The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.  
 The affected sensors will return as "Expired" when this condition is met._**
+
 
 Conditions above marked with <a name="1d">[1d]</a> are daily forecasts. To get forecast for different day, replace the number
 in `_1d_` part of the sensor name. Valid values are from `1` to `5`.
@@ -258,7 +241,6 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
           - weather_5d
           - weather_5n
 ```
-
 <p class='note warning'>
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
 </p>
@@ -268,11 +250,9 @@ Note that the Weather Underground sensor is added to the entity_registry, so sec
 ```yaml
     - sensor.wupws_weather_1d_metric_2
 ```
-
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
 
 # Sample configuration.yaml
-
 ```yaml
 wundergroundpws:
   api_key: YOUR_API_KEY

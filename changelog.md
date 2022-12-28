@@ -1,3 +1,23 @@
+v1.0.2
+Add state_class to sensors for automatic stats/graphs
+add "Lgt Rain" to condition_map
+add "Early" to condition_modifiers
+added - precip_chance_  1n thru 5n sensors for nighttime
+return 'Expired' instead of 'unknown' for daypart sensors from the API after 3:00pm Local Apparent Time
+Wunderground API caveat: 
+PLEASE NOTE: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.
+
+
+
+v1.0.1
+merge weather entity fixes from @shtrom
+correct pressure reporting in weather entity
+
+v1.0.0
+complete rework by @shtrom to add weather entity.  
+Pull Request #114 - https://github.com/shtrom/Home-Assistant-wundergroundpws/tree/weather-entity  
+BREAKING CHANGE for upgrades
+
 v0.8.3
 merge PR #100 Add sensor for wind direction as friendly name
 
