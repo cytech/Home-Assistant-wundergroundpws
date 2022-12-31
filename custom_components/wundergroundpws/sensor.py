@@ -15,7 +15,12 @@ import voluptuous as vol
 
 from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.components import sensor
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import (
+    PLATFORM_SCHEMA,
+    SensorEntity,
+    SensorStateClass,
+)
+
 from homeassistant.const import (
     CONF_MONITORED_CONDITIONS, CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE,
     TEMP_FAHRENHEIT, TEMP_CELSIUS, LENGTH_INCHES,
@@ -65,7 +70,8 @@ class WUSensorConfig:
     def __init__(self, friendly_name, feature, value,
                  unit_of_measurement=None, entity_picture=None,
                  icon="mdi:gauge", device_state_attributes=None,
-                 device_class=None):
+                 device_class=None
+                 ,state_class=None):
         """Constructor.
         Args:
             friendly_name (string|func): Friendly name
@@ -88,13 +94,14 @@ class WUSensorConfig:
         self.icon = icon
         self.device_state_attributes = device_state_attributes or {}
         self.device_class = device_class
+        self.state_class = state_class
 
 
 class WUCurrentConditionsSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for current conditions."""
 
     def __init__(self, friendly_name, field, icon="mdi:gauge",
-                 unit_of_measurement=None, device_class=None):
+                 unit_of_measurement=None, device_class=None,state_class=None):
         """Constructor.
 
         Args:
@@ -115,7 +122,8 @@ class WUCurrentConditionsSensorConfig(WUSensorConfig):
                 'date': lambda wu: wu.data['observations'][0][
                     'obsTimeLocal']
             },
-            device_class=device_class
+            device_class=device_class,
+            state_class=state_class
         )
 
 
@@ -183,7 +191,8 @@ SENSOR_TYPES = {
         value=lambda wu: int(wu.data['observations'][0]['humidity'] or 0),
         unit_of_measurement='%',
         icon="mdi:water-percent",
-        device_class="humidity"),
+        device_class="humidity",
+        state_class=SensorStateClass.MEASUREMENT),
     'stationID': WUSensorConfig(
         'Station ID', 'observations',
         value=lambda wu: wu.data['observations'][0]['stationID'],
@@ -192,12 +201,15 @@ SENSOR_TYPES = {
         'Solar Radiation', 'observations',
         value=lambda wu: str(wu.data['observations'][0]['solarRadiation']),
         unit_of_measurement='w/m2',
-        icon="mdi:weather-sunny"),
+        icon="mdi:weather-sunny",
+        device_class="irradiance",
+        state_class=SensorStateClass.MEASUREMENT),
     'uv': WUSensorConfig(
         'UV', 'observations',
         value=lambda wu: str(wu.data['observations'][0]['uv']),
         unit_of_measurement='',
-        icon="mdi:sunglasses", ),
+        icon="mdi:sunglasses",
+        state_class=SensorStateClass.MEASUREMENT),
     'winddir': WUSensorConfig(
         'Wind Direction', 'observations',
         value=lambda wu: int(wu.data['observations'][0]['winddir'] or 0),
@@ -217,25 +229,32 @@ SENSOR_TYPES = {
     'elev': WUCurrentConditionsSensorConfig(
         'Elevation', 'elev', 'mdi:elevation-rise', ALTITUDEUNIT),
     'dewpt': WUCurrentConditionsSensorConfig(
-        'Dewpoint', 'dewpt', 'mdi:water', TEMPUNIT),
+        'Dewpoint', 'dewpt', 'mdi:water', TEMPUNIT,
+        device_class="temperature",state_class=SensorStateClass.MEASUREMENT),
     'heatIndex': WUCurrentConditionsSensorConfig(
-        'Heat index', 'heatIndex', "mdi:thermometer", TEMPUNIT),
+        'Heat index', 'heatIndex', "mdi:thermometer", TEMPUNIT,
+        device_class="temperature",state_class=SensorStateClass.MEASUREMENT),
     'windChill': WUCurrentConditionsSensorConfig(
-        'Wind chill', 'windChill', "mdi:thermometer", TEMPUNIT),
+        'Wind chill', 'windChill', "mdi:thermometer", TEMPUNIT,
+        device_class="temperature",state_class=SensorStateClass.MEASUREMENT),
     'precipRate': WUCurrentConditionsSensorConfig(
-        'Precipitation Rate', 'precipRate', "mdi:umbrella", RATE),
+        'Precipitation Rate', 'precipRate', "mdi:umbrella", RATE,
+        device_class="precipitation_intensity",state_class=SensorStateClass.MEASUREMENT),
     'precipTotal': WUCurrentConditionsSensorConfig(
-        'Precipitation Today', 'precipTotal', "mdi:umbrella", LENGTHUNIT),
+        'Precipitation Today', 'precipTotal', "mdi:umbrella", LENGTHUNIT,
+        device_class="precipitation",state_class=SensorStateClass.TOTAL_INCREASING),
     'pressure': WUCurrentConditionsSensorConfig(
         'Pressure', 'pressure', "mdi:gauge", PRESSUREUNIT,
-        device_class="pressure"),
+        device_class="atmospheric_pressure",state_class=SensorStateClass.MEASUREMENT),
     'temp': WUCurrentConditionsSensorConfig(
         'Temperature', 'temp', "mdi:thermometer", TEMPUNIT,
-        device_class="temperature"),
-    'windGust': WUCurrentConditionsSensorConfig(
-        'Wind Gust', 'windGust', "mdi:weather-windy", SPEEDUNIT),
+        device_class="temperature",state_class=SensorStateClass.MEASUREMENT)
+    ,'windGust': WUCurrentConditionsSensorConfig(
+        'Wind Gust', 'windGust', "mdi:weather-windy", SPEEDUNIT,
+        device_class="wind_speed",state_class=SensorStateClass.MEASUREMENT),
     'windSpeed': WUCurrentConditionsSensorConfig(
-        'Wind Speed', 'windSpeed', "mdi:weather-windy", SPEEDUNIT),
+        'Wind Speed', 'windSpeed', "mdi:weather-windy", SPEEDUNIT,
+        device_class="wind_speed",state_class=SensorStateClass.MEASUREMENT),
     # forecast
     'weather_1d': WUDailyTextForecastSensorConfig(0),
     'weather_1n': WUDailyTextForecastSensorConfig(1),
@@ -421,7 +440,7 @@ async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
     async_add_entities(sensors, True)
 
 
-class WUndergroundSensor(Entity):
+class WUndergroundSensor(SensorEntity):
     """Implementing the WUnderground sensor."""
 
     def __init__(self, hass: HomeAssistantType, rest, condition,
@@ -442,6 +461,7 @@ class WUndergroundSensor(Entity):
         self.entity_id = sensor.ENTITY_ID_FORMAT.format('wupws_' + condition)
         self._unique_id = "{},{}".format(unique_id_base, condition)
         self._device_class = self._cfg_expand("device_class")
+        self._attr_state_class = self._cfg_expand("state_class")
 
     def _cfg_expand(self, what, default=None):
         """Parse and return sensor data."""
@@ -509,6 +529,13 @@ class WUndergroundSensor(Entity):
         """Return the units of measurement."""
         return self._device_class
 
+    @property
+    def state_class(self) -> SensorStateClass | str | None:
+        """Return the state class."""
+        if hasattr(self, "_attr_state_class"):
+            return self._attr_state_class
+        return None
+        
     async def async_update(self):
         """Update current conditions."""
         await self.rest.async_update()
