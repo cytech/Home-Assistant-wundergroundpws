@@ -227,7 +227,7 @@ SENSOR_TYPES = {
         device_class=SensorDeviceClass.PRECIPITATION_INTENSITY, state_class=SensorStateClass.MEASUREMENT),
     'precipTotal': WUCurrentConditionsSensorConfig(
         'Precipitation Today', 'precipTotal', "mdi:umbrella", LENGTHUNIT, device_class=SensorDeviceClass.PRECIPITATION,
-        state_class=SensorStateClass.MEASUREMENT),
+        state_class=SensorStateClass.TOTAL_INCREASING),
     'pressure': WUCurrentConditionsSensorConfig(
         'Pressure', 'pressure', "mdi:gauge", PRESSUREUNIT,
         device_class=SensorDeviceClass.PRESSURE, state_class=SensorStateClass.MEASUREMENT),

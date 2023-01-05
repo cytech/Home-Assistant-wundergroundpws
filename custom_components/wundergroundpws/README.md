@@ -4,7 +4,6 @@ Includes a native Home Assistant Weather Entity and a variety of weather sensors
 Current conditions are generated from the wundergroundpws configured pws_id.  
 Forecast is generated from the Home Assistant configured latitude/longitude.  
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.  
-Thanks to @shtrom for ALL the work on this update!
 
 :+1: If you find this software useful, feel free to make a donation: [Paypal.me Donation Link](https://paypal.me/cytecheng)  
 
@@ -83,10 +82,11 @@ sensor:
 Restart Home Assistant
 
 # Upgrade
+UPGRADE NOTE v1.1.0: BREAKING CHANGE -  Requires Home Assistant v 2023.1 or later.  
 UPGRADE NOTE v1.0.0: BREAKING CHANGE -  Requires Home Assistant v 2022.11 or later.  
-REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
+UPGRADING FROM v0.8.X REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
 See "Example configuration.yaml entry" above.  
-TO UPGRADE FROM v0.8.X:
+TO UPGRADE:
 1. Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.
 2. Delete contents of existing "custom_components/wundergroundpws" directory.
 3. Download the latest v1.X.X release zip file from this repository.
@@ -105,7 +105,8 @@ TO UPGRADE FROM v0.8.X:
       required: true
       type: string
     pws_id:
-      description: "You must enter a Personal Weather Station ID. The station id will be used to display current weather conditions."
+      description: You must enter a Personal Weather Station ID. 
+                   The station id will be used to display current weather conditions.
       required: true
       type: string
     numeric_precision:
@@ -113,9 +114,11 @@ TO UPGRADE FROM v0.8.X:
         required: true - Value of 'none' or 'decimal'
         type: string
     lang:
-      description: Specify the language that the API returns. The current list of all Wunderground language codes
-        is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#) or below. 
-        If not specified, it defaults to English (en-US).
+      description: Specify the language that the API returns. The current list of all 
+                   Wunderground language codes is available  at 
+                   https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit
+                   or at the Localization bookmark below. 
+                   If not specified, it defaults to English (en-US).
       required: false
       type: string
       default: en-US
@@ -137,6 +140,7 @@ TO UPGRADE FROM v0.8.X:
 #      required: true
 #      type: list
 #      default: symbol
+#      See https://www.wunderground.com/about/data) for Weather Underground data information.
      dewpt:
        description: Temperature below which water droplets begin to condense and dew can form
      elev:
@@ -172,7 +176,7 @@ TO UPGRADE FROM v0.8.X:
      temp_low_1d:
        description: Forecasted low temperature. (Variations _1d, _2d, _3d, _4d, _5d)
      uv:
-       description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
+       description: Current levels of UV radiation. 
      weather_1d:
        description: A human-readable weather forecast of Day. (Variations _1d, _2d, _3d, _4d, _5d)
      weather_1n:
@@ -184,7 +188,7 @@ TO UPGRADE FROM v0.8.X:
      winddir:
        description: Wind degrees
      windDirectionName:
-       description: Wind cardinal direction (N,S,E,W, etc)
+       description: Wind cardinal direction (N, NE, NNE, S, E, W, etc)
      windGust:
        description: Wind gusts speed
      windSpeed:
@@ -195,7 +199,7 @@ All the conditions listed above will be updated every 5 minutes.
 
 **_Wunderground API caveat:   
 The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.  
-The affected sensors will return as "Expired" when this condition is met._**
+The affected sensors will return as "N/A" when this condition is met._**
 
 
 Conditions above marked with <a name="1d">[1d]</a> are daily forecasts. To get forecast for different day, replace the number
@@ -253,11 +257,14 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
 </p>
 
-Note that the Weather Underground sensor is added to the entity_registry, so second and subsequent Personal Weather Station ID (pws_id) will have their monitored conditions suffixed with an index number e.g.
+[//]: # (Note that the Weather Underground sensor is added to the entity_registry, so second and subsequent Personal Weather Station ID &#40;pws_id&#41; will have their monitored conditions suffixed with an index number e.g.)
 
-```yaml
-    - sensor.wupws_weather_1d_metric_2
-```
+[//]: # ()
+[//]: # (```yaml)
+
+[//]: # (    - sensor.wupws_weather_1d_metric_2)
+
+[//]: # (```)
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
 
 # Sensors available in statistics
@@ -373,10 +380,13 @@ sensor:
 # Localization
 
 Sensor "friendly names" are set via translation files.  
+Wundergroundpws translation files are located in the 'wundergroundpws/translations' directory.
+Files were translated, using 'en.json' as the base, via https://translate.i18next.com.  
+Translations only use the base language code and not the variant (i.e. zh-CN/zh-HK/zh-TW uses zh).  
 The default is en-US (translations/en.json) if the lang: option is not set in the wundergroundpws config.  
 If lang: is set (i.e.  lang: de-DE), then the translations/de.json file is loaded, and the Weather Underground API is queried with de-DE.    
-The translation file applies to all sensor friendly names, EXCEPT wupws_weather_1d thru wupws_weather_5d.  
-wupws_weather_1d thru wupws_weather_5d translations are supplied by the Weather Underground API.  
+The translation file applies to all sensor friendly names, EXCEPT wupws_weather_1d(n) through wupws_weather_5d(n).  
+wupws_weather_1d(n) through wupws_weather_5d(n) translations are supplied by the Weather Underground API.  
 Available lang: options are:  
 ```
 'am-ET', 'ar-AE', 'az-AZ', 'bg-BG', 'bn-BD', 'bn-IN', 'bs-BA', 'ca-ES', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-GB',
