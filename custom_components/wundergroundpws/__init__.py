@@ -17,6 +17,7 @@ from .const import (
     CONF_LANG,
     CONF_NUMERIC_PRECISION,
     CONF_PWS_ID,
+    CONF_CALENDARDAYTEMPERATURE,
 
     DOMAIN,
 
@@ -25,6 +26,7 @@ from .const import (
 
     LANG_CODES,
     DEFAULT_LANG, ENTRY_LANG, ENTRY_TRAN_FILE,
+    DEFAULT_CALENDARDAYTEMPERATURE, ENTRY_CALENDARDAYTEMPERATURE, DEFAULT_NUMERIC_PRECISION
 )
 from .wunderground_data import WUndergroundData
 
@@ -35,11 +37,12 @@ CONFIG_SCHEMA = vol.Schema(
         DOMAIN: {
             vol.Required(CONF_API_KEY): cv.string,
             vol.Required(CONF_PWS_ID): cv.string,
-            vol.Required(CONF_NUMERIC_PRECISION):
+            vol.Optional(CONF_NUMERIC_PRECISION, default=DEFAULT_NUMERIC_PRECISION):
                 vol.All(vol.In(['none', 'decimal'])),
-
             vol.Optional(CONF_LANG, default=DEFAULT_LANG):
                 vol.All(vol.In(LANG_CODES)),
+            vol.Optional(CONF_CALENDARDAYTEMPERATURE, default=DEFAULT_CALENDARDAYTEMPERATURE):
+                cv.boolean,
             vol.Inclusive(CONF_LATITUDE, 'coordinates',
                           'Latitude and longitude must exist together'):
                 cv.latitude,
@@ -80,6 +83,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     numeric_precision = platform_config.get(CONF_NUMERIC_PRECISION)
 
     lang = platform_config.get(CONF_LANG)
+    caldaytemp = platform_config.get(CONF_CALENDARDAYTEMPERATURE)
 
     if hass.config.units is METRIC_SYSTEM:
         unit_system_api = 'm'
@@ -102,7 +106,8 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     hass.data[DOMAIN] = {
         ENTRY_WEATHER_COORDINATOR: rest,
         ENTRY_PWS_ID: pws_id,
-        ENTRY_LANG: lang
+        ENTRY_LANG: lang,
+        ENTRY_CALENDARDAYTEMPERATURE: caldaytemp
     }
 
     hass.data[DOMAIN].update({ENTRY_TRAN_FILE: get_tran_file(hass)})

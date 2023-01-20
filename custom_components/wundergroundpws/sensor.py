@@ -104,7 +104,9 @@ class WUCurrentConditionsSensorConfig(WUSensorConfig):
 class WUDailyTextForecastSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for daily text forecasts.
     Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
-    will appear as null in the API after 3:00pm Local Apparent Time. """
+    will appear as null in the API after 3:00pm Local Apparent Time.
+    OBJECT: daypart NOTE: For the purposes of this product day(D) = 7am to 7pm and night(N) = 7pm to 7am
+    .... local?apparent?utc??? in reality this seems to be day(D) = 3am to 3pm and night(N) = 3pm to 3am"""
 
     def __init__(self, period):
         """Constructor.
@@ -128,7 +130,9 @@ class WUDailyTextForecastSensorConfig(WUSensorConfig):
 class WUDailySimpleForecastSensorConfig(WUSensorConfig):
     """Helper for defining sensor configurations for daily simpleforecasts.
     Wunderground API caveat: The daypart object as well as the temperatureMax field OUTSIDE of the daypart object
-    will appear as null in the API after 3:00pm Local Apparent Time. """
+    will appear as null in the API after 3:00pm Local Apparent Time.
+    OBJECT: daypart NOTE: For the purposes of this product day(D) = 7am to 7pm and night(N) = 7pm to 7am
+    ....  local?apparent?utc??? in reality this seems to be day(D) = 3am to 3pm and night(N) = 3pm to 3am"""
 
     def __init__(self, friendly_name, period, field,
                  unit_of_measurement=None, icon=None, device_class=None, state_class=None):

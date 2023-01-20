@@ -1,3 +1,16 @@
+v1.1.1  
+Remove +1 adjustment to forecast temperatureMin for weather entity.  
+This caused current day forecast temp min to jump to next day temp min after 3:00pm.  
+
+Set config numeric_precision to optional and default 'none'.
+
+Added optional "calendarday_temp" to wundergroundpws configuration.  
+If set true, retrieves main Forecast temperature max/min (NOT daypart) relative to calendar day (12:00am -> 11:59pm)  
+as opposed to API period (~7:00am -> ~6:59am).  
+Only affects the weather entity forecast values, not the sensors.   
+This field is undocumented in The Weather Company PWS API, so it is subject to change and if removed from  
+the API response in the future, will crash the integration if set true.
+
 v1.1.0  
 Replace condition mapping from wxPhraseShort to iconCode
 - wxPhraseShort is not documented and subject to change by the API and iconCode is not

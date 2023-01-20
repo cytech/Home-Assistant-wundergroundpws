@@ -12,10 +12,12 @@ CONF_ATTRIBUTION = 'Data provided by the WUnderground weather service'
 CONF_PWS_ID = 'pws_id'
 CONF_NUMERIC_PRECISION = 'numeric_precision'
 CONF_LANG = 'lang'
+CONF_CALENDARDAYTEMPERATURE = 'calendarday_temp'
 
 ENTRY_PWS_ID = 'pws_id'
 ENTRY_WEATHER_COORDINATOR = 'weather_coordinator'
 ENTRY_LANG = 'lang'
+ENTRY_CALENDARDAYTEMPERATURE = 'calendarday_temp'
 ENTRY_TRAN_FILE = 'tranfile'
 
 # Language Supported Codes
@@ -32,8 +34,9 @@ LANG_CODES = [
 # However, when formatting a request URL a valid language must be passed along.
 # dayOfWeek,daypartName,moonPhase,narrative,qualifierPhrase,uvDescription,windDirectionCardinal,windPhrase,wxPhraseLong
 
-
+DEFAULT_NUMERIC_PRECISION = 'none'
 DEFAULT_LANG = 'en-US'
+DEFAULT_CALENDARDAYTEMPERATURE = False
 
 TEMPUNIT = 0
 LENGTHUNIT = 1
@@ -58,6 +61,8 @@ FIELD_FORECAST_PRECIPCHANCE = 'precipChance'
 FIELD_FORECAST_QPF = 'qpf'
 FIELD_FORECAST_TEMPERATUREMAX = 'temperatureMax'
 FIELD_FORECAST_TEMPERATUREMIN = 'temperatureMin'
+FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX = 'calendarDayTemperatureMax'
+FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN = 'calendarDayTemperatureMin'
 FIELD_FORECAST_VALIDTIMEUTC = 'validTimeUtc'
 FIELD_FORECAST_WINDDIRECTIONCARDINAL = 'windDirectionCardinal'
 FIELD_FORECAST_WINDSPEED = 'windSpeed'

@@ -19,6 +19,8 @@ from .const import (
     FIELD_FORECAST_VALIDTIMEUTC,
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN
 )
 
 _RESOURCESHARED = '&format=json&apiKey={apiKey}&units={units}'
@@ -97,6 +99,8 @@ class WUndergroundData:
             if field in [
                 FIELD_FORECAST_TEMPERATUREMAX,
                 FIELD_FORECAST_TEMPERATUREMIN,
+                FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
+                FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN,
                 FIELD_FORECAST_VALIDTIMEUTC,
             ]:
                 # Those fields exist per-day, rather than per dayPart, so the period is halved

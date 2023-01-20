@@ -19,6 +19,8 @@ The `wundergroundpws` platform uses [Weather Underground](http://www.wundergroun
 
 [Description of terms and variables](#description-of-terms-and-variables)
 
+[Weather Entity](#weather-entity)
+
 [Statistics Card](#sensors-available-in-statistics)
 
 [Sample configuration.yaml](#sample-configurationyaml)
@@ -29,7 +31,7 @@ The `wundergroundpws` platform uses [Weather Underground](http://www.wundergroun
 Please review the minimum requirements below to determine whether you will be able to
 install and use the software.
 
-- wundergroundpws v1.1.0 requires Home Assistant Version 2023.1 or greater
+- wundergroundpws v1.1.X requires Home Assistant Version 2023.1 or greater
 - wundergroundpws v1.0.2 requires Home Assistant Version 2022.11 or greater
 - Registered and active Weather Underground personal weather station API key 
 
@@ -65,7 +67,6 @@ To add Wundergroundpws to your installation, add the following to your `configur
 wundergroundpws:
   api_key: YOUR_API_KEY
   pws_id: YOUR_STATION_ID
-  numeric_precision: none
 
 # Required to generate HASS weather Entity for weather forecast card
 weather:
@@ -110,9 +111,21 @@ TO UPGRADE:
       required: true
       type: string
     numeric_precision:
-        description: Required - Show PWS data as integer or decimal
-        required: true - Value of 'none' or 'decimal'
-        type: string
+      description: Optional - Show PWS data as integer or decimal.
+                   Only applies to PWS current values (not forecast) in sensors (not weather entity).
+      required: false - Value of 'none' or 'decimal'
+      type: string
+      default: none
+    calendarday_temp:
+      USE AT YOUR OWN RISK - Undocumented in The Weather Company PWS observations API:
+      description: Optional - if true, retrieve Forecast temperature max/min relative  
+                   to calendar day (12:00am -> 11:59pm) as opposed to API period (~7:00am -> ~6:59am).    
+                   Only affects the weather entity forecast values, not the sensors.  
+                   This field is undocumented in The Weather Company PWS API,  
+                   so it is subject to change and if removed from API response in the future, will crash the integration if set true.
+      required: false - Value of 'true' or 'false'
+      type: boolean
+      default: false
     lang:
       description: Specify the language that the API returns. The current list of all 
                    Wunderground language codes is available  at 
@@ -126,12 +139,12 @@ TO UPGRADE:
       description: Latitude coordinate for weather forecast (required if **longitude** is specified).
       required: false
       type: string
-      default: Coordinates defined in your `configuration.yaml`
+      default: WU API lat of stationId
     longitude:
       description: Longitude coordinate for weather forecast (required if **latitude** is specified).
       required: false
       type: string
-      default: Coordinates defined in your `configuration.yaml`
+      default: WU API lon of stationId
 ```
 # Available Sensors
 ```yaml
@@ -141,6 +154,8 @@ TO UPGRADE:
 #      type: list
 #      default: symbol
 #      See https://www.wunderground.com/about/data) for Weather Underground data information.
+#
+#   Observations (current)
      dewpt:
        description: Temperature below which water droplets begin to condense and dew can form
      elev:
@@ -148,17 +163,11 @@ TO UPGRADE:
      heatIndex:
        description: Heat index (combined effects of the temperature and humidity of the air)
      humidity:
-       description: Relative humidity                  
+       description: Relative humidity    
      neighborhood:
        description: WU PWS reference name
      obsTimeLocal:
        description: Text summary of local observation time
-     precip_1d:
-       description: Forecasted precipitation intensity. (Variations _1d, _2d, _3d, _4d, _5d)
-     precip_chance_1d:
-       description: Forecasted precipitation probability in %. (Variations _1d, _2d, _3d, _4d, _5d)      
-     precip_chance_1n:
-       description: Forecasted precipitation probability in %. (Variations _1n, _2n, _3n, _4n, _5n)
      precipRate:
        description: Rain intensity
      precipTotal:
@@ -171,18 +180,8 @@ TO UPGRADE:
        description: Your personal weather station (PWS) ID
      temp:
        description: Current temperature
-     temp_high_1d:
-       description: Forecasted high temperature. (Variations _1d, _2d, _3d, _4d, _5d)
-     temp_low_1d:
-       description: Forecasted low temperature. (Variations _1d, _2d, _3d, _4d, _5d)
      uv:
        description: Current levels of UV radiation. 
-     weather_1d:
-       description: A human-readable weather forecast of Day. (Variations _1d, _2d, _3d, _4d, _5d)
-     weather_1n:
-       description: A human-readable weather forecast of Night. (Variations _1n, _2n, _3n, _4n, _5n)
-     wind_1d:
-       description: Forecasted wind speed. (Variations _1d, _2d, _3d, _4d, _5d)
      windChill:
        description: Wind Chill (combined effects of the temperature and wind)      
      winddir:
@@ -193,6 +192,23 @@ TO UPGRADE:
        description: Wind gusts speed
      windSpeed:
        description: Current wind speed      
+#   Forecast       
+     precip_1d:
+       description: Forecasted precipitation intensity. (Variations _1d, _2d, _3d, _4d, _5d)
+     precip_chance_1d:
+       description: Forecasted precipitation probability in %. (Variations _1d, _2d, _3d, _4d, _5d)      
+     precip_chance_1n:
+       description: Forecasted precipitation probability in %. (Variations _1n, _2n, _3n, _4n, _5n)
+     temp_high_1d:
+       description: Forecasted high temperature. (Variations _1d, _2d, _3d, _4d, _5d)
+     temp_low_1d:
+       description: Forecasted low temperature. (Variations _1d, _2d, _3d, _4d, _5d)
+     weather_1d:
+       description: A human-readable weather forecast of Day. (Variations _1d, _2d, _3d, _4d, _5d)
+     weather_1n:
+       description: A human-readable weather forecast of Night. (Variations _1n, _2n, _3n, _4n, _5n)
+     wind_1d:
+       description: Forecasted wind speed. (Variations _1d, _2d, _3d, _4d, _5d)
 ```
 
 All the conditions listed above will be updated every 5 minutes.  
@@ -267,6 +283,25 @@ Note: While the platform is called “wundergroundpws” the sensors will show u
 [//]: # (```)
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
 
+# Weather Entity
+wundergroundpws data returned to weather entity (HASS weather forecast card):  
+Current:
+- temperature
+- pressure
+- humidity
+- wind_speed
+- wind_bearing
+
+Forecast:
+- datetime
+- temperature (max)
+- temperature (low)
+- condition (icon)
+- precipitation
+- precipitation_probability
+- wind_bearing
+- wind_speed
+
 # Sensors available in statistics
 The following are wundergroundpws sensors exposed to the statistics card in Lovelace.  
 Note that only sensors of like units can be combined in a single card.  
@@ -308,7 +343,6 @@ Note that only sensors of like units can be combined in a single card.
 wundergroundpws:
   api_key: YOUR_API_KEY
   pws_id: YOUR_STATION_ID
-  numeric_precision: none
 
 weather:
   - platform: wundergroundpws
