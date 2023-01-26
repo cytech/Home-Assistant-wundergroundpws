@@ -9,7 +9,10 @@ If set true, retrieves main Forecast temperature max/min (NOT daypart) relative 
 as opposed to API period (~7:00am -> ~6:59am).  
 Only affects the weather entity forecast values, not the sensors.   
 This field is undocumented in The Weather Company PWS API, so it is subject to change and if removed from  
-the API response in the future, will crash the integration if set true.
+the API response in the future, will crash the integration if set true.  
+
+moved translations directory to wupws_translations.  
+updated nl.json per PR#152.
 
 v1.1.0  
 Replace condition mapping from wxPhraseShort to iconCode

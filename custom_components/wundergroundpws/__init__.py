@@ -57,7 +57,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 """get translation file for wupws sensor friendly_name"""
 def get_tran_file(hass: HomeAssistantType):
-    tfiledir = f'{hass.config.config_dir}/custom_components/{DOMAIN}/translations/'
+    tfiledir = f'{hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
     tfilename = hass.data[DOMAIN][ENTRY_LANG].split('-', 1)[0]
     try:
         tfile = open(f'{tfiledir}{tfilename}.json')

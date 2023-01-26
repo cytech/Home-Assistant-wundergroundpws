@@ -107,7 +107,8 @@ TO UPGRADE:
       type: string
     pws_id:
       description: You must enter a Personal Weather Station ID. 
-                   The station id will be used to display current weather conditions.
+                   The station id will be used to display current weather conditions.  
+                   Note - Case Sensitive. Must match the ID of your Wunderground device in member settings.
       required: true
       type: string
     numeric_precision:
@@ -414,7 +415,7 @@ sensor:
 # Localization
 
 Sensor "friendly names" are set via translation files.  
-Wundergroundpws translation files are located in the 'wundergroundpws/translations' directory.
+Wundergroundpws translation files are located in the 'wundergroundpws/wupws_translations' directory.
 Files were translated, using 'en.json' as the base, via https://translate.i18next.com.  
 Translations only use the base language code and not the variant (i.e. zh-CN/zh-HK/zh-TW uses zh).  
 The default is en-US (translations/en.json) if the lang: option is not set in the wundergroundpws config.  
