@@ -1,8 +1,27 @@
 """
 Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
-https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v2.X.X
 """
+from typing import Final
+
+from homeassistant.components.weather import (
+    ATTR_CONDITION_CLEAR_NIGHT,
+    ATTR_CONDITION_CLOUDY,
+    ATTR_CONDITION_EXCEPTIONAL,
+    ATTR_CONDITION_FOG,
+    ATTR_CONDITION_HAIL,
+    ATTR_CONDITION_LIGHTNING,
+    ATTR_CONDITION_LIGHTNING_RAINY,
+    ATTR_CONDITION_PARTLYCLOUDY,
+    ATTR_CONDITION_POURING,
+    ATTR_CONDITION_RAINY,
+    ATTR_CONDITION_SNOWY,
+    ATTR_CONDITION_SNOWY_RAINY,
+    ATTR_CONDITION_SUNNY,
+    ATTR_CONDITION_WINDY,
+    ATTR_CONDITION_WINDY_VARIANT
+)
 
 DOMAIN = 'wundergroundpws'
 MANUFACTURER = 'WeatherUnderground'
@@ -33,6 +52,24 @@ LANG_CODES = [
 # Only the TWC  5-day forecast API handles the translation of phrases for values of the following data.
 # However, when formatting a request URL a valid language must be passed along.
 # dayOfWeek,daypartName,moonPhase,narrative,qualifierPhrase,uvDescription,windDirectionCardinal,windPhrase,wxPhraseLong
+
+ICON_CONDITION_MAP: Final[dict[str, list[int]]] = {
+    ATTR_CONDITION_CLEAR_NIGHT: [31, 33],
+    ATTR_CONDITION_CLOUDY: [26, 27, 28],
+    ATTR_CONDITION_EXCEPTIONAL: [0, 1, 2, 19, 21, 22, 36, 43],  # 44 is Not Available (N/A)
+    ATTR_CONDITION_FOG: [20],
+    ATTR_CONDITION_HAIL: [17],
+    ATTR_CONDITION_LIGHTNING: [],
+    ATTR_CONDITION_LIGHTNING_RAINY: [3, 4, 37, 38, 47],
+    ATTR_CONDITION_PARTLYCLOUDY: [29, 30],
+    ATTR_CONDITION_POURING: [40],
+    ATTR_CONDITION_RAINY: [9, 11, 12, 39, 45],
+    ATTR_CONDITION_SNOWY: [13, 14, 15, 16, 41, 42, 46],
+    ATTR_CONDITION_SNOWY_RAINY: [5, 6, 7, 8, 10, 18, 25, 35],
+    ATTR_CONDITION_SUNNY: [32, 34],
+    ATTR_CONDITION_WINDY: [23, 24],
+    ATTR_CONDITION_WINDY_VARIANT: []
+}
 
 DEFAULT_NUMERIC_PRECISION = 'none'
 DEFAULT_LANG = 'en-US'

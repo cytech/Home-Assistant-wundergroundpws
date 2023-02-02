@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "latitude": "[%key:common::config_flow::data::latitude%]",
+          "longitude": "[%key:common::config_flow::data::longitude%]",
+          "name": "Name of the integration",
+          "pws_id": "Personal Weather Station ID"
+        },
+        "description": "Set up WundergroundPWS integration. To generate API key go to https://www.wunderground.com/member/api-keys",
+        "title": "WundergroundPWS"
+      }
+    },
+    "error": {
+      "invalid_api_key": "[%key:common::config_flow::error::invalid_api_key%]",
+      "invalid_station_id": "[%key:common::config_flow::error::invalid_station_id%]",
+      "unknown_error": "[%key:common::config_flow::error::unknown_error%]"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "numeric_precision": "Numeric Precision",
+          "lang": "Language",
+          "calendarday_temp": "Show Forecast temperature by Calendar Day period ?",
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        }
+      }
+    }
+  }
+}

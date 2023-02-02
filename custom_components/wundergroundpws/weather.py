@@ -1,15 +1,15 @@
 """
 Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
-https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v2.X.X
 """
+
+from . import WundergroundPWSUpdateCoordinator
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
-    MANUFACTURER,
-    NAME,
-
     ENTRY_PWS_ID,
-    ENTRY_WEATHER_COORDINATOR,
     ENTRY_CALENDARDAYTEMPERATURE,
 
     TEMPUNIT,
@@ -32,7 +32,7 @@ from .const import (
     FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN,
     FIELD_FORECAST_WINDDIRECTIONCARDINAL,
     FIELD_FORECAST_WINDSPEED,
-    FIELD_FORECAST_ICONCODE,
+    FIELD_FORECAST_ICONCODE, CONF_PWS_ID,
 )
 
 import logging
@@ -48,53 +48,41 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_WIND_SPEED,
     WeatherEntity,
     Forecast,
+    DOMAIN as WEATHER_DOMAIN
 )
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType
-
-from .wunderground_data import WUndergroundData
 
 _LOGGER = logging.getLogger(__name__)
 
+ENTITY_ID_FORMAT = WEATHER_DOMAIN + ".{}"
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info=None
+
+async def async_setup_entry(
+        hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Set up WeatherUnderground weather entity based on a config entry."""
-    domain_data = hass.data[DOMAIN]
-    rest = domain_data[ENTRY_WEATHER_COORDINATOR]
-
-    unique_id = hass.data[DOMAIN][ENTRY_PWS_ID]
-
-    wu_weather = WUWeather(unique_id, unique_id, rest)
-    async_add_entities([wu_weather], False)
+    """Add weather entity."""
+    pws_id: str = entry.data[CONF_PWS_ID]
+    coordinator: WundergroundPWSUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([WUWeather(pws_id, coordinator)])
 
 
-class WUWeather(WeatherEntity):
+class WUWeather(CoordinatorEntity, WeatherEntity):
 
     def __init__(
-        self,
-        name: str,
-        unique_id: str,
-        wunderground_data: WUndergroundData
-    ) -> None:
+            self,
+            pws_id: str,
+            coordinator: WundergroundPWSUpdateCoordinator
+    ):
+        super().__init__(coordinator)
         """Initialize the sensor."""
-        self._attr_name = name
-        self._attr_unique_id = unique_id
-        self._attr_device_info = DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, unique_id)},
-            manufacturer=MANUFACTURER,
-            name=NAME,
+        self._attr_name = pws_id
+        self.entity_id = generate_entity_id(
+            ENTITY_ID_FORMAT, f"{self._attr_name}", hass=coordinator.hass
         )
-        self._rest = wunderground_data
+        self._attr_unique_id = f"{ENTRY_PWS_ID}"
 
     @property
     def native_temperature(self) -> float:
@@ -102,44 +90,44 @@ class WUWeather(WeatherEntity):
         Return the platform temperature in native units
         (i.e. not converted).
         """
-        return self._rest.get_condition(FIELD_CONDITION_TEMP)
+        return self.coordinator.get_condition(FIELD_CONDITION_TEMP)
 
     @property
     def native_temperature_unit(self) -> str:
         """Return the native unit of measurement for temperature."""
-        return self._rest.units_of_measurement[TEMPUNIT]
+        return self.coordinator.units_of_measurement[TEMPUNIT]
 
     @property
     def native_pressure(self) -> float:
         """Return the pressure in native units."""
-        pressure = self._rest.get_condition(FIELD_CONDITION_PRESSURE)
+        pressure = self.coordinator.get_condition(FIELD_CONDITION_PRESSURE)
         if pressure is not None:
-            return self._rest.get_condition(FIELD_CONDITION_PRESSURE)
+            return self.coordinator.get_condition(FIELD_CONDITION_PRESSURE)
 
     @property
     def native_pressure_unit(self) -> str:
         """Return the native unit of measurement for pressure."""
-        return self._rest.units_of_measurement[PRESSUREUNIT]
+        return self.coordinator.units_of_measurement[PRESSUREUNIT]
 
     @property
     def humidity(self) -> float:
         """Return the humidity in native units."""
-        return self._rest.get_condition(FIELD_CONDITION_HUMIDITY)
+        return self.coordinator.get_condition(FIELD_CONDITION_HUMIDITY)
 
     @property
     def native_wind_speed(self) -> float:
         """Return the wind speed in native units."""
-        return self._rest.get_condition(FIELD_CONDITION_WINDSPEED)
+        return self.coordinator.get_condition(FIELD_CONDITION_WINDSPEED)
 
     @property
     def native_wind_speed_unit(self) -> str:
         """Return the native unit of measurement for wind speed."""
-        return self._rest.units_of_measurement[SPEEDUNIT]
+        return self.coordinator.units_of_measurement[SPEEDUNIT]
 
     @property
     def wind_bearing(self) -> str:
         """Return the wind bearing."""
-        return self._rest.get_condition(FIELD_CONDITION_WINDDIR)
+        return self.coordinator.get_condition(FIELD_CONDITION_WINDDIR)
 
     @property
     def ozone(self) -> float:
@@ -161,23 +149,23 @@ class WUWeather(WeatherEntity):
         """
         Return the native unit of measurement for accumulated precipitation.
         """
-        return self._rest.units_of_measurement[LENGTHUNIT]
+        return self.coordinator.units_of_measurement[LENGTHUNIT]
 
     @property
     def condition(self) -> str:
         """Return the current condition."""
-        day = self._rest.get_forecast(FIELD_FORECAST_ICONCODE)
-        night = self._rest.get_forecast(FIELD_FORECAST_ICONCODE, 1)
-        return self._rest._iconCode_to_condition(day or night)
+        day = self.coordinator.get_forecast(FIELD_FORECAST_ICONCODE)
+        night = self.coordinator.get_forecast(FIELD_FORECAST_ICONCODE, 1)
+        return self.coordinator._iconcode_to_condition(day or night)
 
     @property
     def forecast(self) -> list[Forecast]:
         """Return the forecast in native units."""
         days = [0, 2, 4, 6, 8]
-        if self._rest.get_forecast('temperature', 0) is None:
+        if self.coordinator.get_forecast('temperature', 0) is None:
             days[0] += 1
 
-        if self.hass.data[DOMAIN][ENTRY_CALENDARDAYTEMPERATURE] is True:
+        if self.coordinator.data.get(ENTRY_CALENDARDAYTEMPERATURE) is True:
             caldaytempmax = FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX
             caldaytempmin = FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN
         else:
@@ -188,29 +176,29 @@ class WUWeather(WeatherEntity):
         for period in days:
             forecast.append(Forecast({
                 ATTR_FORECAST_CONDITION:
-                    self._rest._iconCode_to_condition(
-                        self._rest.get_forecast(
+                    self.coordinator._iconcode_to_condition(
+                        self.coordinator.get_forecast(
                             FIELD_FORECAST_ICONCODE, period)
                     ),
                 ATTR_FORECAST_PRECIPITATION:
-                    self._rest.get_forecast(FIELD_FORECAST_QPF, period),
+                    self.coordinator.get_forecast(FIELD_FORECAST_QPF, period),
                 ATTR_FORECAST_PRECIPITATION_PROBABILITY:
-                    self._rest.get_forecast(FIELD_FORECAST_PRECIPCHANCE, period),
+                    self.coordinator.get_forecast(FIELD_FORECAST_PRECIPCHANCE, period),
 
                 ATTR_FORECAST_TEMP:
-                    self._rest.get_forecast(caldaytempmax, period),
+                    self.coordinator.get_forecast(caldaytempmax, period),
                 ATTR_FORECAST_TEMP_LOW:
-                    self._rest.get_forecast(
+                    self.coordinator.get_forecast(
                         caldaytempmin, period),
 
                 ATTR_FORECAST_TIME:
-                    self._rest.get_forecast(
+                    self.coordinator.get_forecast(
                         FIELD_FORECAST_VALIDTIMEUTC, period) * 1000,
 
                 ATTR_FORECAST_WIND_BEARING:
-                    self._rest.get_forecast(
+                    self.coordinator.get_forecast(
                         FIELD_FORECAST_WINDDIRECTIONCARDINAL, period),
-                ATTR_FORECAST_WIND_SPEED: self._rest.get_forecast(
+                ATTR_FORECAST_WIND_SPEED: self.coordinator.get_forecast(
                     FIELD_FORECAST_WINDSPEED, period)
             }))
         # _LOGGER.debug(f'{forecast=}')

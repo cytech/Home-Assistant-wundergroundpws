@@ -1,3 +1,7 @@
+v2.0.0
+move integration to config_flow
+update bg.json per PR#154
+
 v1.1.1  
 Remove +1 adjustment to forecast temperatureMin for weather entity.  
 This caused current day forecast temp min to jump to next day temp min after 3:00pm.  

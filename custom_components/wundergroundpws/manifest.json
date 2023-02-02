@@ -1,10 +1,12 @@
 {
   "domain": "wundergroundpws",
   "name": "Wundergroundpws",
-  "version": "1.1.1",
-  "documentation": "https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X",
+  "version": "2.0.0",
+  "documentation": "https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v2.X.X",
   "issue_tracker": "https://github.com/cytech/Home-Assistant-wundergroundpws/issues/",
   "requirements": [],
   "dependencies": [],
-  "codeowners": ["@cytech"]
+  "codeowners": ["@cytech"],
+  "config_flow": true,
+  "iot_class": "cloud_polling"
 }

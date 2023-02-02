@@ -1,41 +1,37 @@
 """
 Support for WUndergroundPWS weather service.
 For more details about this platform, please refer to the documentation at
-https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v2.X.X
 """
-
+from config.custom_components.wundergroundpws import WundergroundPWSUpdateCoordinator
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     CONF_ATTRIBUTION,
     DOMAIN,
     ENTRY_PWS_ID,
-    ENTRY_WEATHER_COORDINATOR,
     TEMPUNIT,
     LENGTHUNIT,
     ALTITUDEUNIT,
     SPEEDUNIT,
     PRESSUREUNIT,
     RATE,
-    PERCENTAGEUNIT, ENTRY_TRAN_FILE,
+    PERCENTAGEUNIT, CONF_PWS_ID
 )
 
 import logging
 import re
 
-import voluptuous as vol
-
-from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.components import sensor
-from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity, SensorDeviceClass, SensorStateClass
-from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS,
-    ATTR_ATTRIBUTION, DEGREE, UnitOfIrradiance)
-
-import homeassistant.helpers.config_validation as cv
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
+from homeassistant.const import ATTR_ATTRIBUTION, DEGREE, UnitOfIrradiance
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # Helper classes for declaring sensor configurations
+
 
 class WUSensorConfig:
     """WU Sensor Configuration.
@@ -349,7 +345,7 @@ SENSOR_TYPES = {
 
 
 def wind_direction_to_friendly_name(argument):
-    if (argument < 0):
+    if argument < 0:
         return ""
     if 348.75 <= argument or 11.25 > argument:
         return "N"
@@ -386,35 +382,49 @@ def wind_direction_to_friendly_name(argument):
     return ""
 
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_MONITORED_CONDITIONS):
-        vol.All(cv.ensure_list, vol.Length(min=1), [vol.In(SENSOR_TYPES)])
-})
+# PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+#     vol.Required(CONF_MONITORED_CONDITIONS):
+#         vol.All(cv.ensure_list, vol.Length(min=1), [vol.In(SENSOR_TYPES)])
+# })
 
 
-async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
-                               async_add_entities, discovery_info=None):
-    rest = hass.data[DOMAIN][ENTRY_WEATHER_COORDINATOR]
+# async def async_setup_platform(hass: HomeAssistantType, config: ConfigType,
+#                                async_add_entities, discovery_info=None):
+#     rest = hass.data[DOMAIN][ENTRY_WEATHER_COORDINATOR]
+#
+#     #     unique_id_base = "@{:06f},{:06f}".format(longitude, latitude)
+#     # else:
+#     #     # Manually specified weather station, use that for unique_id
+#     #     unique_id_base = pws_id
+#     unique_id_base = hass.data[DOMAIN][ENTRY_PWS_ID]
+#     sensors = []
+#
+#     for variable in config[CONF_MONITORED_CONDITIONS]:
+#         sensors.append(WUndergroundSensor(hass, rest, variable,
+#                                           unique_id_base))
+#
+#     async_add_entities(sensors, True)
 
-    #     unique_id_base = "@{:06f},{:06f}".format(longitude, latitude)
-    # else:
-    #     # Manually specified weather station, use that for unique_id
-    #     unique_id_base = pws_id
-    unique_id_base = hass.data[DOMAIN][ENTRY_PWS_ID]
-    sensors = []
 
-    for variable in config[CONF_MONITORED_CONDITIONS]:
-        sensors.append(WUndergroundSensor(hass, rest, variable,
-                                          unique_id_base))
+async def async_setup_entry(
+        hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
+    """Add WundergroundPWS entities from a config_entry."""
+    unique_id_base: str = entry.data[CONF_PWS_ID]
+    coordinator: WundergroundPWSUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    sensors = [
+        # WUndergroundSensor(coordinator, description) for description in SENSOR_TYPES
+        WUndergroundSensor(coordinator, variable, unique_id_base) for variable in SENSOR_TYPES
+    ]
 
-    async_add_entities(sensors, True)
+    async_add_entities(sensors)
 
 
 class WUndergroundSensor(SensorEntity):
     """Implementing the WUnderground sensor."""
 
-    def __init__(self, hass: HomeAssistantType, rest, condition,
-                 unique_id_base: str):
+    # def __init__(self, hass: HomeAssistantType, rest, condition, unique_id_base: str):
+    def __init__(self, rest, condition, unique_id_base: str):
         """Initialize the sensor."""
         self.rest = rest
         self._condition = condition
@@ -467,8 +477,10 @@ class WUndergroundSensor(SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        if self._condition in self.hass.data[DOMAIN][ENTRY_TRAN_FILE].keys():
-            return self.hass.data[DOMAIN][ENTRY_TRAN_FILE][self._condition]
+        # if self._condition in self.hass.data[DOMAIN][ENTRY_TRAN_FILE].keys():
+        tranfile = self.rest.get_tran_file()
+        if self._condition in tranfile.keys():
+            return tranfile[self._condition]
         return self._cfg_expand("friendly_name")
 
     @property
@@ -508,7 +520,7 @@ class WUndergroundSensor(SensorEntity):
 
     async def async_update(self):
         """Update current conditions."""
-        await self.rest.async_update()
+        await self.rest._async_update_data()
 
         if not self.rest.data:
             # no data, return
@@ -526,4 +538,3 @@ class WUndergroundSensor(SensorEntity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return self._unique_id
-
