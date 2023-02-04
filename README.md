@@ -7,7 +7,6 @@ Includes a native Home Assistant Weather Entity and a variety of weather sensors
 Current conditions are generated from the wundergroundpws configured pws_id.  
 Forecast is generated from the Home Assistant configured latitude/longitude.  
 The `wundergroundpws` platform uses [Weather Underground](http://www.wunderground.com) as a source for current weather information.  
-Thanks to @shtrom for ALL the work on this update!
 
 :+1: If you find this software useful, feel free to make a donation: [Paypal.me Donation Link](https://paypal.me/cytecheng)  
 
@@ -30,17 +29,24 @@ or
 copy the custom_components directory into your .homeassistant directory
 and the www directory into your .homeassistant directory.
 
+[Weather Entity](#weather-entity)
+
+[Statistics Card](#sensors-available-in-statistics)
+
 [Sample configuration.yaml](#sample-configurationyaml)
 
-# Installation Prerequisites
+[Localization](#localization)
+
+## Installation Prerequisites
 
 Please review the minimum requirements below to determine whether you will be able to
 install and use the software.
 
-- Home Assistant Version 2022.11 or greater
+- wundergroundpws v1.1.X requires Home Assistant Version 2023.1 or greater
+- wundergroundpws v1.0.2 requires Home Assistant Version 2022.11 or greater
 - Registered and active Weather Underground personal weather station API key
 
-# Weather Underground PWS API Key
+## Weather Underground PWS API Key
 
 Free API keys are only issued to registered and active Weather Underground personal weather station users.  
 To use this integration, you need a Weather Underground personal weather station API key and Station ID.  
@@ -55,11 +61,10 @@ To get a free API key:
 
 The forecast is generated from the HA configured latitude/longitude.
 
-# Installation
+## Installation
 
 Download the latest v1.X.X release zip file from this repository
 Extract the zip file to a temporary directory.
--------
 
 Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.
 Copy the custom_components directory from the extracted file into your .homeassistant directory
@@ -75,7 +80,6 @@ To add Wundergroundpws to your installation, add the following to your `configur
 wundergroundpws:
   api_key: YOUR_API_KEY
   pws_id: YOUR_STATION_ID
-  numeric_precision: none
 
 # Required to generate HASS weather Entity for weather forecast card
 weather:
@@ -92,12 +96,15 @@ sensor:
 
 Restart Home Assistant
 
-# Upgrade
+## Upgrade
 
+UPGRADE NOTE v1.1.0: BREAKING CHANGE -  Requires Home Assistant v 2023.1 or later.  
 UPGRADE NOTE v1.0.0: BREAKING CHANGE -  Requires Home Assistant v 2022.11 or later.  
-REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
+UPGRADING FROM v0.8.X REQUIRES SIGNIFICANT CHANGES TO CONFIGURATION.YAML.  
 See "Example configuration.yaml entry" above.  
-TO UPGRADE FROM v0.8.X:
+
+=======
+TO UPGRADE:
 
 1. Stop Home Assistant. If you do not stop the Home Assistant instance, changes to the sensors in configuration.yaml will cause a restart failure, and you will have to reboot the device.
 2. Delete contents of existing "custom_components/wundergroundpws" directory.
@@ -108,7 +115,7 @@ TO UPGRADE FROM v0.8.X:
 7. Existing sensors in any entity cards should be the same.  
 8. In lovelace, add a "weather forecast" card selecting the "weather.YOUR_STATION_ID" entity and save.  
 
-# Description of terms and variables
+## Description of terms and variables
 
 ```yaml
   wundergroundpws:
@@ -117,15 +124,33 @@ TO UPGRADE FROM v0.8.X:
       required: true
       type: string
     pws_id:
-      description: "You must enter a Personal Weather Station ID. The station id will be used to display current weather conditions."
+      description: You must enter a Personal Weather Station ID. 
+                   The station id will be used to display current weather conditions.  
+                   Note - Case Sensitive. Must match the ID of your Wunderground device in member settings.
       required: true
       type: string
     numeric_precision:
-        description: Required - Show PWS data as integer or decimal
-        required: true - Value of 'none' or 'decimal'
-        type: string
+      description: Optional - Show PWS data as integer or decimal.
+                   Only applies to PWS current values (not forecast) in sensors (not weather entity).
+      required: false - Value of 'none' or 'decimal'
+      type: string
+      default: none
+    calendarday_temp:
+      USE AT YOUR OWN RISK - Undocumented in The Weather Company PWS observations API:
+      description: Optional - if true, retrieve Forecast temperature max/min relative  
+                   to calendar day (12:00am -> 11:59pm) as opposed to API period (~7:00am -> ~6:59am).    
+                   Only affects the weather entity forecast values, not the sensors.  
+                   This field is undocumented in The Weather Company PWS API,  
+                   so it is subject to change and if removed from API response in the future, will crash the integration if set true.
+      required: false - Value of 'true' or 'false'
+      type: boolean
+      default: false
     lang:
-      description: Specify the language that the API returns. The current list of all Wunderground language codes is available  at https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit#). If not specified, it defaults to English (en-US).
+      description: Specify the language that the API returns. The current list of all 
+                   Wunderground language codes is available  at 
+                   https://docs.google.com/document/d/13HTLgJDpsb39deFzk_YCQ5GoGoZCO_cRYzIxbwvgJLI/edit
+                   or at the Localization bookmark below. 
+                   If not specified, it defaults to English (en-US).
       required: false
       type: string
       default: en-US
@@ -133,13 +158,15 @@ TO UPGRADE FROM v0.8.X:
       description: Latitude coordinate for weather forecast (required if **longitude** is specified).
       required: false
       type: string
-      default: Coordinates defined in your `configuration.yaml`
+      default: WU API lat of stationId
     longitude:
       description: Longitude coordinate for weather forecast (required if **latitude** is specified).
       required: false
       type: string
-      default: Coordinates defined in your `configuration.yaml`
+      default: WU API lon of stationId
 ```
+
+## Available Sensors
 
 ```yaml
   monitored_conditions:
@@ -147,6 +174,9 @@ TO UPGRADE FROM v0.8.X:
 #      required: true
 #      type: list
 #      default: symbol
+#      See https://www.wunderground.com/about/data) for Weather Underground data information.
+#
+#   Observations (current)
      dewpt:
        description: Temperature below which water droplets begin to condense and dew can form
      elev:
@@ -154,17 +184,11 @@ TO UPGRADE FROM v0.8.X:
      heatIndex:
        description: Heat index (combined effects of the temperature and humidity of the air)
      humidity:
-       description: Relative humidity                  
+       description: Relative humidity    
      neighborhood:
        description: WU PWS reference name
      obsTimeLocal:
        description: Text summary of local observation time
-     precip_1d:
-       description: Forecasted precipitation intensity. (Variations _1d, _2d, _3d, _4d, _5d)
-     precip_chance_1d:
-       description: Forecasted precipitation probability in %. (Variations _1d, _2d, _3d, _4d, _5d)      
-     precip_chance_1n:
-       description: Forecasted precipitation probability in %. (Variations _1n, _2n, _3n, _4n, _5n)
      precipRate:
        description: Rain intensity
      precipTotal:
@@ -177,35 +201,42 @@ TO UPGRADE FROM v0.8.X:
        description: Your personal weather station (PWS) ID
      temp:
        description: Current temperature
+     uv:
+       description: Current levels of UV radiation. 
+     windChill:
+       description: Wind Chill (combined effects of the temperature and wind)      
+     winddir:
+       description: Wind degrees
+     windDirectionName:
+       description: Wind cardinal direction (N, NE, NNE, S, E, W, etc)
+     windGust:
+       description: Wind gusts speed
+     windSpeed:
+       description: Current wind speed      
+#   Forecast       
+     precip_1d:
+       description: Forecasted precipitation intensity. (Variations _1d, _2d, _3d, _4d, _5d)
+     precip_chance_1d:
+       description: Forecasted precipitation probability in %. (Variations _1d, _2d, _3d, _4d, _5d)      
+     precip_chance_1n:
+       description: Forecasted precipitation probability in %. (Variations _1n, _2n, _3n, _4n, _5n)
      temp_high_1d:
        description: Forecasted high temperature. (Variations _1d, _2d, _3d, _4d, _5d)
      temp_low_1d:
        description: Forecasted low temperature. (Variations _1d, _2d, _3d, _4d, _5d)
-     uv:
-       description: Current levels of UV radiation. See [here](https://www.wunderground.com/resources/health/uvindex.asp) for explanation.
      weather_1d:
        description: A human-readable weather forecast of Day. (Variations _1d, _2d, _3d, _4d, _5d)
      weather_1n:
        description: A human-readable weather forecast of Night. (Variations _1n, _2n, _3n, _4n, _5n)
      wind_1d:
        description: Forecasted wind speed. (Variations _1d, _2d, _3d, _4d, _5d)
-     windChill:
-       description: Wind Chill (combined effects of the temperature and wind)      
-     winddir:
-       description: Wind degrees
-     windDirectionName:
-       description: Wind cardinal direction (N,S,E,W, etc)
-     windGust:
-       description: Wind gusts speed
-     windSpeed:
-       description: Current wind speed      
 ```
 
 All the conditions listed above will be updated every 5 minutes.  
 
 **_Wunderground API caveat:
 The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.  
-The affected sensors will return as "Expired" when this condition is met._**
+The affected sensors will return as "N/A" when this condition is met._**
 
 Conditions above marked with <a name="1d">[1d]</a> are daily forecasts. To get forecast for different day, replace the number
 in `_1d_` part of the sensor name. Valid values are from `1` to `5`.
@@ -263,21 +294,79 @@ in `_1n_` part of the sensor name. Valid values are from `1` to `5`.
 Note: While the platform is called “wundergroundpws” the sensors will show up in Home Assistant as “WUPWS” (eg: sensor.wupws_weather_1d).
 </p>
 
-Note that the Weather Underground sensor is added to the entity_registry, so second and subsequent Personal Weather Station ID (pws_id) will have their monitored conditions suffixed with an index number e.g.
+[//]: # (Note that the Weather Underground sensor is added to the entity_registry, so second and subsequent Personal Weather Station ID &#40;pws_id&#41; will have their monitored conditions suffixed with an index number e.g.)
 
-```yaml
-    - sensor.wupws_weather_1d_metric_2
-```
+[//]: # ()
+[//]: # (```yaml)
 
+[//]: # (    - sensor.wupws_weather_1d_metric_2)
+
+[//]: # (```)
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
 
-# Sample configuration.yaml
+## Weather Entity
+
+wundergroundpws data returned to weather entity (HASS weather forecast card):  
+Current:
+
+- temperature
+- pressure
+- humidity
+- wind_speed
+- wind_bearing
+
+Forecast:
+
+- datetime
+- temperature (max)
+- temperature (low)
+- condition (icon)
+- precipitation
+- precipitation_probability
+- wind_bearing
+- wind_speed
+
+## Sensors available in statistics
+
+The following are wundergroundpws sensors exposed to the statistics card in Lovelace.  
+Note that only sensors of like units can be combined in a single card.  
+
+- **class NONE**
+- sensor.wupws_uv
+-
+- **class DEGREE**
+- sensor.wupws_winddir
+
+-
+- **class RATE & SPEED**
+- sensor.wupws_precipRate
+- sensor.wupws_windGust
+- sensor.wupws_windSpeed
+-
+- **class LENGTH**
+- sensor.wupws_precipTotal
+-
+- **class PRESSURE**
+- sensor.wupws_pressure
+-
+- **class HUMIDITY**
+- sensor.wupws_humidity
+-
+- **class IRRADIANCE**
+- sensor.wupws_solarRadiation
+-
+- **class TEMPERATURE**
+- sensor.wupws_dewpt
+- sensor.wupws_heatIndex
+- sensor.wupws_windChill
+- sensor.wupws_temp
+
+## Sample configuration.yaml
 
 ```yaml
 wundergroundpws:
   api_key: YOUR_API_KEY
   pws_id: YOUR_STATION_ID
-  numeric_precision: none
 
 weather:
   - platform: wundergroundpws
@@ -345,3 +434,27 @@ sensor:
       - windGust
       - windSpeed
 ```
+
+## Localization
+
+Sensor "friendly names" are set via translation files.  
+Wundergroundpws translation files are located in the 'wundergroundpws/wupws_translations' directory.
+Files were translated, using 'en.json' as the base, via <https://translate.i18next.com>.  
+Translations only use the base language code and not the variant (i.e. zh-CN/zh-HK/zh-TW uses zh).  
+The default is en-US (translations/en.json) if the lang: option is not set in the wundergroundpws config.  
+If lang: is set (i.e.  lang: de-DE), then the translations/de.json file is loaded, and the Weather Underground API is queried with de-DE.
+The translation file applies to all sensor friendly names, EXCEPT wupws_weather_1d(n) through wupws_weather_5d(n).  
+wupws_weather_1d(n) through wupws_weather_5d(n) translations are supplied by the Weather Underground API.  
+Available lang: options are:
+
+```
+'am-ET', 'ar-AE', 'az-AZ', 'bg-BG', 'bn-BD', 'bn-IN', 'bs-BA', 'ca-ES', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-GB',
+'en-IN', 'en-US', 'es-AR', 'es-ES', 'es-LA', 'es-MX', 'es-UN', 'es-US', 'et-EE', 'fa-IR', 'fi-FI', 'fr-CA', 'fr-FR',
+'gu-IN', 'he-IL', 'hi-IN', 'hr-HR', 'hu-HU', 'in-ID', 'is-IS', 'it-IT', 'iw-IL', 'ja-JP', 'jv-ID', 'ka-GE', 'kk-KZ',
+'km-KH', 'kn-IN', 'ko-KR', 'lo-LA', 'lt-LT', 'lv-LV', 'mk-MK', 'mn-MN', 'mr-IN', 'ms-MY', 'my-MM', 'ne-IN', 'ne-NP',
+'nl-NL', 'no-NO', 'om-ET', 'pa-IN', 'pa-PK', 'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'ru-RU', 'si-LK', 'sk-SK', 'sl-SI',
+'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'ti-ER', 'ti-ET', 'tg-TJ', 'th-TH',
+'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
+```
+
+Weather Entity (hass weather card) translations are handled by Home Assistant and configured under the user -> language setting.

@@ -1,8 +1,8 @@
 {
   "domain": "wundergroundpws",
   "name": "Wundergroundpws",
-  "version": "1.0.2",
-  "documentation": "https://github.com/cytech/Home-Assistant-wundergroundpws",
+  "version": "1.1.1",
+  "documentation": "https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X",
   "issue_tracker": "https://github.com/cytech/Home-Assistant-wundergroundpws/issues/",
   "requirements": [],
   "dependencies": [],

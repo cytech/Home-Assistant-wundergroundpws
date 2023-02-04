@@ -5,34 +5,22 @@ import logging
 import async_timeout
 import aiohttp
 from homeassistant.const import (
-    TEMP_FAHRENHEIT, TEMP_CELSIUS, LENGTH_INCHES,
-    LENGTH_FEET, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_MILES_PER_HOUR, SPEED_KILOMETERS_PER_HOUR,
-    PERCENTAGE, PRESSURE_INHG, PRESSURE_MBAR, PRECIPITATION_INCHES_PER_HOUR, PRECIPITATION_MILLIMETERS_PER_HOUR)
+    PERCENTAGE, UnitOfPressure, UnitOfTemperature, UnitOfLength, UnitOfSpeed, UnitOfVolumetricFlux)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import Throttle
 
 from .const import (
     FIELD_LATITUDE,
     FIELD_LONGITUDE,
-
     FIELD_OBSERVATIONS,
-
     FIELD_CONDITION_HUMIDITY,
-    FIELD_CONDITION_PRESSURE,
-    FIELD_CONDITION_TEMP,
     FIELD_CONDITION_WINDDIR,
-    FIELD_CONDITION_WINDSPEED,
-
     FIELD_DAYPART,
-
-    FIELD_FORECAST_WXPHRASESHORT,
     FIELD_FORECAST_VALIDTIMEUTC,
-    FIELD_FORECAST_PRECIPCHANCE,
-    FIELD_FORECAST_QPF,
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
-    FIELD_FORECAST_WINDDIRECTIONCARDINAL,
-    FIELD_FORECAST_WINDSPEED,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN
 )
 
 _RESOURCESHARED = '&format=json&apiKey={apiKey}&units={units}'
@@ -47,85 +35,24 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 class WUndergroundData:
     """Get data from WUnderground."""
-
-    condition_map: dict = {
-        'clear-night': [
-            "Clear",
-        ],
-        'cloudy': [
-            "Clouds",
-            "Cloudy",
-            "Flurries",
-        ],
-        'exceptional': [
-            "Fair",
-        ],
-        'fog': [
-            "Fog",
-        ],
-        'hail': [
-            "Frz Rain",
-        ],
-        'lightning': [
-            'T-Storms',
-        ],
-        'lightning-rainy': [
-            "Rain/Thunder",
-        ],
-        'partlycloudy': [
-            "P Cloudy",
-        ],
-        'pouring': [
-            "Heavy Rain",
-        ],
-        'rainy': [
-            "Light Rain",
-            "Lgt Rain",
-            "Rain",
-            "Rain Shower",
-            "R/S Showers",
-            "Rain/Wind",
-            "Rn/Snw/Wind",
-            "Shower/Wind",
-            "Showers",
-            "Showers/Wind",
-            "Shwrs",
-        ],
-        'snowy': [
-            "Ice/Snow",
-            "Light Snow",
-            "Snow Shower",
-            "Snow/Wind",
-        ],
-        'snowy-rainy': [
-            "Rain/Snow",
-        ],
-        'sunny': [
-            "Sunny",
-            "M Sunny",
-        ],
-        'windy': [
-            "Clr/Wind",
-            "Fair/Wind",
-            "Sun/Wind"
-        ],
-        'windy-variant': [
-            "Cldy/Wind",
-            "Cloudy/Wind",
-        ],
+    # icon map supporting document TWC_Icon_Map.ods in repository
+    icon_condition_map: dict = {
+        'clear-night': [31, 33],
+        'cloudy': [26, 27, 28],
+        'exceptional': [0, 1, 2, 19, 21, 22, 36, 43],  # 44 is Not Available (N/A)
+        'fog': [20],
+        'hail': [17],
+        'lightning': [],
+        'lightning-rainy': [3, 4, 37, 38, 47],
+        'partlycloudy': [29, 30],
+        'pouring': [40],
+        'rainy': [9, 11, 12, 39, 45],
+        'snowy': [13, 14, 15, 16, 41, 42, 46],
+        'snowy-rainy': [5, 6, 7, 8, 10, 18, 25, 35],
+        'sunny': [32, 34],
+        'windy': [23, 24],
+        'windy-variant': []
     }
-    # List of modifiers to strip from condition descriptor
-    # This list needs to be sorted in order of decreasing length
-    condition_modifiers: list = (
-        'Early',
-        'Late',
-        'Near',
-        'Few',
-        'Sct',
-        'AM',
-        'PM',
-        'M',
-    )
 
     def __init__(self, hass, api_key, pws_id,
                  numeric_precision, unit_system_api, unit_system, lang,
@@ -146,11 +73,13 @@ class WUndergroundData:
         self._session = async_get_clientsession(self._hass)
 
         if unit_system_api == 'm':
-            self.units_of_measurement = (TEMP_CELSIUS, LENGTH_MILLIMETERS, LENGTH_METERS, SPEED_KILOMETERS_PER_HOUR,
-                                         PRESSURE_MBAR, PRECIPITATION_MILLIMETERS_PER_HOUR, PERCENTAGE)
+            self.units_of_measurement = (UnitOfTemperature.CELSIUS, UnitOfLength.MILLIMETERS, UnitOfLength.METERS,
+                                         UnitOfSpeed.KILOMETERS_PER_HOUR, UnitOfPressure.MBAR,
+                                         UnitOfVolumetricFlux.MILLIMETERS_PER_HOUR, PERCENTAGE)
         else:
-            self.units_of_measurement = (TEMP_FAHRENHEIT, LENGTH_INCHES, LENGTH_FEET, SPEED_MILES_PER_HOUR,
-                                         PRESSURE_INHG, PRECIPITATION_INCHES_PER_HOUR, PERCENTAGE)
+            self.units_of_measurement = (UnitOfTemperature.FAHRENHEIT, UnitOfLength.INCHES, UnitOfLength.FEET,
+                                         UnitOfSpeed.MILES_PER_HOUR, UnitOfPressure.INHG,
+                                         UnitOfVolumetricFlux.INCHES_PER_HOUR, PERCENTAGE)
 
     def request_feature(self, feature):
         """Register feature to be fetched from WU API."""
@@ -158,8 +87,8 @@ class WUndergroundData:
 
     def get_condition(self, field):
         if field in [
-                FIELD_CONDITION_HUMIDITY,
-                FIELD_CONDITION_WINDDIR,
+            FIELD_CONDITION_HUMIDITY,
+            FIELD_CONDITION_WINDDIR,
         ]:
             # Those fields are unit-less
             return self.data[FIELD_OBSERVATIONS][0][field] or 0
@@ -168,47 +97,24 @@ class WUndergroundData:
     def get_forecast(self, field, period=0):
         try:
             if field in [
-                    FIELD_FORECAST_TEMPERATUREMAX,
-                    FIELD_FORECAST_TEMPERATUREMIN,
-                    FIELD_FORECAST_VALIDTIMEUTC,
+                FIELD_FORECAST_TEMPERATUREMAX,
+                FIELD_FORECAST_TEMPERATUREMIN,
+                FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
+                FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN,
+                FIELD_FORECAST_VALIDTIMEUTC,
             ]:
                 # Those fields exist per-day, rather than per dayPart, so the period is halved
-                return self.data[field][int(period/2)]
+                return self.data[field][int(period / 2)]
             return self.data[FIELD_DAYPART][0][field][period]
         except IndexError:
             return None
 
     @classmethod
-    def _wxPhraseShort_to_condition(cls, wx_phrase_short):
-        '''
-        Based on data at [0]
-
-        [0] https://wiki.webcore.co/TWC_Weather
-        '''
-        if not wx_phrase_short:
-            _LOGGER.warn(
-                'Empty wxPhraseShort in response from the Weather API.'
-                'This is usually due to the `lang` setting.'
-                'Please try unsetting it.'
-            )
-            return None
-        wx_phrase_short_clean = wx_phrase_short
-        for s in cls.condition_modifiers:
-            # _LOGGER.debug(f'before {wx_phrase_short}')
-            wx_phrase_short_clean = wx_phrase_short_clean.replace(s, '')
-            # _LOGGER.debug(f'after {wx_phrase_short_clean}')
-        wx_phrase_short_clean = wx_phrase_short_clean.strip()
-        for condition, phrases in cls.condition_map.items():
-            if wx_phrase_short_clean in phrases:
-                # _LOGGER.debug(
-                #     f'Mapping "{wx_phrase_short}" to {condition}'
-                # )
+    def _iconCode_to_condition(cls, icon_code):
+        for condition, iconcodes in cls.icon_condition_map.items():
+            if icon_code in iconcodes:
                 return condition
-        _LOGGER.warn(
-            f'Unsupported condition string "{wx_phrase_short}". '
-            'Please update WUndergroundData.condition_map '
-            'and/or WUndergroundData.condition_modifiers.'
-        )
+        _LOGGER.warning(f'Unmapped iconCode from TWC Api. (44 is Not Available (N/A)) "{icon_code}". ')
         return None
 
     def _build_url(self, baseurl):
@@ -244,11 +150,9 @@ class WUndergroundData:
             self._check_errors(url, result_current)
 
             if not self._longitude:
-                self._longitude = (result_current[FIELD_OBSERVATIONS]
-                                   [0][FIELD_LONGITUDE])
+                self._longitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LONGITUDE])
             if not self._latitude:
-                self._latitude = (result_current[FIELD_OBSERVATIONS]
-                                  [0][FIELD_LATITUDE])
+                self._latitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE])
 
             with async_timeout.timeout(10):
                 url = self._build_url(_RESOURCEFORECAST)
@@ -272,7 +176,7 @@ class WUndergroundData:
             _LOGGER.error("Check WUnderground API %s", err.args)
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error fetching WUnderground data: %s", repr(err))
-        _LOGGER.debug(f'WUnderground data {self.data}')
+        # _LOGGER.debug(f'WUnderground data {self.data}')
 
     def _check_errors(self, url: str, response: dict):
         # _LOGGER.debug(f'Checking errors from {url} in {response}')

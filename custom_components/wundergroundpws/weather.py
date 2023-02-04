@@ -1,8 +1,7 @@
 """
 Support for WUndergroundPWS weather service.
-
 For more details about this platform, please refer to the documentation at
-https://github.com/cytech/Home-Assistant-wundergroundpws
+https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v1.X.X
 """
 from .const import (
     DOMAIN,
@@ -11,14 +10,12 @@ from .const import (
 
     ENTRY_PWS_ID,
     ENTRY_WEATHER_COORDINATOR,
+    ENTRY_CALENDARDAYTEMPERATURE,
 
     TEMPUNIT,
     LENGTHUNIT,
-    ALTITUDEUNIT,
     SPEEDUNIT,
     PRESSUREUNIT,
-    RATE,
-    PERCENTAGEUNIT,
 
     FIELD_CONDITION_HUMIDITY,
     FIELD_CONDITION_PRESSURE,
@@ -26,23 +23,24 @@ from .const import (
     FIELD_CONDITION_WINDDIR,
     FIELD_CONDITION_WINDSPEED,
 
-    FIELD_FORECAST_WXPHRASESHORT,
     FIELD_FORECAST_VALIDTIMEUTC,
     FIELD_FORECAST_PRECIPCHANCE,
     FIELD_FORECAST_QPF,
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN,
     FIELD_FORECAST_WINDDIRECTIONCARDINAL,
     FIELD_FORECAST_WINDSPEED,
+    FIELD_FORECAST_ICONCODE,
 )
-import asyncio
+
 import logging
 
 from homeassistant.components.weather import (
     ATTR_FORECAST_CONDITION,
     ATTR_FORECAST_PRECIPITATION,
     ATTR_FORECAST_PRECIPITATION_PROBABILITY,
-    ATTR_FORECAST_PRESSURE,
     ATTR_FORECAST_TEMP,
     ATTR_FORECAST_TEMP_LOW,
     ATTR_FORECAST_TIME,
@@ -51,12 +49,12 @@ from homeassistant.components.weather import (
     WeatherEntity,
     Forecast,
 )
-from homeassistant.const import PRECISION_TENTHS, PRECISION_WHOLE, TEMP_CELSIUS
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import HomeAssistantType, ConfigType
+from homeassistant.helpers.typing import ConfigType
 
 from .wunderground_data import WUndergroundData
 
@@ -159,50 +157,6 @@ class WUWeather(WeatherEntity):
         return self._attr_visibility_unit
 
     @property
-    def forecast(self) -> list[Forecast]:
-        """Return the forecast in native units."""
-        days = [0, 2, 4, 6, 8]
-        if self._rest.get_forecast('temperature', 0) is None:
-            days[0] += 1
-
-        forecast = [
-            Forecast({
-                ATTR_FORECAST_CONDITION:
-                self._rest._wxPhraseShort_to_condition(
-                    self._rest.get_forecast(
-                        FIELD_FORECAST_WXPHRASESHORT, period)
-                ),
-
-                ATTR_FORECAST_PRECIPITATION:
-                self._rest.get_forecast(FIELD_FORECAST_QPF, period),
-                ATTR_FORECAST_PRECIPITATION_PROBABILITY:
-                self._rest.get_forecast(FIELD_FORECAST_PRECIPCHANCE, period),
-
-                ATTR_FORECAST_TEMP:
-                self._rest.get_forecast(FIELD_FORECAST_TEMPERATUREMAX, period),
-                # Use the min temperature from the next prediction,
-                # as otherwise it is too similar to the current max
-                # and is not as useful
-                ATTR_FORECAST_TEMP_LOW:
-                self._rest.get_forecast(
-                    FIELD_FORECAST_TEMPERATUREMIN, period+1),
-
-                ATTR_FORECAST_TIME:
-                self._rest.get_forecast(
-                    FIELD_FORECAST_VALIDTIMEUTC, period) * 1000,
-
-                ATTR_FORECAST_WIND_BEARING:
-                self._rest.get_forecast(
-                    FIELD_FORECAST_WINDDIRECTIONCARDINAL, period),
-                ATTR_FORECAST_WIND_SPEED: self._rest.get_forecast(
-                    FIELD_FORECAST_WINDSPEED, period)
-            })
-            for period in days
-        ]
-        # _LOGGER.debug(f'{forecast=}')
-        return forecast
-
-    @property
     def native_precipitation_unit(self) -> str:
         """
         Return the native unit of measurement for accumulated precipitation.
@@ -212,6 +166,52 @@ class WUWeather(WeatherEntity):
     @property
     def condition(self) -> str:
         """Return the current condition."""
-        day = self._rest.get_forecast(FIELD_FORECAST_WXPHRASESHORT)
-        night = self._rest.get_forecast(FIELD_FORECAST_WXPHRASESHORT, 1)
-        return self._rest._wxPhraseShort_to_condition(day or night)
+        day = self._rest.get_forecast(FIELD_FORECAST_ICONCODE)
+        night = self._rest.get_forecast(FIELD_FORECAST_ICONCODE, 1)
+        return self._rest._iconCode_to_condition(day or night)
+
+    @property
+    def forecast(self) -> list[Forecast]:
+        """Return the forecast in native units."""
+        days = [0, 2, 4, 6, 8]
+        if self._rest.get_forecast('temperature', 0) is None:
+            days[0] += 1
+
+        if self.hass.data[DOMAIN][ENTRY_CALENDARDAYTEMPERATURE] is True:
+            caldaytempmax = FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX
+            caldaytempmin = FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN
+        else:
+            caldaytempmax = FIELD_FORECAST_TEMPERATUREMAX
+            caldaytempmin = FIELD_FORECAST_TEMPERATUREMIN
+
+        forecast = []
+        for period in days:
+            forecast.append(Forecast({
+                ATTR_FORECAST_CONDITION:
+                    self._rest._iconCode_to_condition(
+                        self._rest.get_forecast(
+                            FIELD_FORECAST_ICONCODE, period)
+                    ),
+                ATTR_FORECAST_PRECIPITATION:
+                    self._rest.get_forecast(FIELD_FORECAST_QPF, period),
+                ATTR_FORECAST_PRECIPITATION_PROBABILITY:
+                    self._rest.get_forecast(FIELD_FORECAST_PRECIPCHANCE, period),
+
+                ATTR_FORECAST_TEMP:
+                    self._rest.get_forecast(caldaytempmax, period),
+                ATTR_FORECAST_TEMP_LOW:
+                    self._rest.get_forecast(
+                        caldaytempmin, period),
+
+                ATTR_FORECAST_TIME:
+                    self._rest.get_forecast(
+                        FIELD_FORECAST_VALIDTIMEUTC, period) * 1000,
+
+                ATTR_FORECAST_WIND_BEARING:
+                    self._rest.get_forecast(
+                        FIELD_FORECAST_WINDDIRECTIONCARDINAL, period),
+                ATTR_FORECAST_WIND_SPEED: self._rest.get_forecast(
+                    FIELD_FORECAST_WINDSPEED, period)
+            }))
+        # _LOGGER.debug(f'{forecast=}')
+        return forecast
