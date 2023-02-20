@@ -53,7 +53,6 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             with async_timeout.timeout(10):
                 url = f'https://api.weather.com/v2/pws/observations/current?stationId={pws_id}&format=json&units=e' \
                       f'&apiKey={api_key}'
-                # 'https://api.weather.com/v2/pws/observations/current?stationId=KAZBISBE8&format=json&units=e&apiKey=fe7f6f1db7bc46ccbf6f1db7bc96ccf5'
                 response = await session.get(url, headers=headers)
             _LOGGER.debug(response.status)
             if response.status != HTTPStatus.OK:
@@ -96,7 +95,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             result_current = await response.json()
             station_id = result_current[FIELD_OBSERVATIONS][0]['stationID']
 
-            unique_id = str(f"wupws-{station_id}")
+            unique_id = str(f"wundergroundpws-{station_id}")
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 

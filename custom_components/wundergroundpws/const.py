@@ -24,9 +24,8 @@ from homeassistant.components.weather import (
 )
 
 DOMAIN = 'wundergroundpws'
-MANUFACTURER = 'WeatherUnderground'
-NAME = 'WeatherUnderground'
-
+# MANUFACTURER = 'WeatherUnderground'
+# NAME = 'WeatherUnderground'
 CONF_ATTRIBUTION = 'Data provided by the WUnderground weather service'
 CONF_PWS_ID = 'pws_id'
 CONF_NUMERIC_PRECISION = 'numeric_precision'
@@ -37,7 +36,7 @@ ENTRY_PWS_ID = 'pws_id'
 ENTRY_WEATHER_COORDINATOR = 'weather_coordinator'
 ENTRY_LANG = 'lang'
 ENTRY_CALENDARDAYTEMPERATURE = 'calendarday_temp'
-ENTRY_TRAN_FILE = 'tranfile'
+# ENTRY_TRAN_FILE = 'tranfile'
 
 # Language Supported Codes
 LANG_CODES = [
@@ -74,6 +73,9 @@ ICON_CONDITION_MAP: Final[dict[str, list[int]]] = {
 DEFAULT_NUMERIC_PRECISION = 'none'
 DEFAULT_LANG = 'en-US'
 DEFAULT_CALENDARDAYTEMPERATURE = False
+MAX_FORECAST_DAYS: Final = 5
+API_IMPERIAL: Final = "imperial"
+API_METRIC: Final = "metric"
 
 TEMPUNIT = 0
 LENGTHUNIT = 1
@@ -83,26 +85,31 @@ PRESSUREUNIT = 4
 RATE = 5
 PERCENTAGEUNIT = 6
 
-FIELD_LATITUDE = 'lat'
-FIELD_LONGITUDE = 'lon'
+FEATURE_CONDITIONS = 'conditions'
+FEATURE_FORECAST = 'forecast'
+FEATURE_FORECAST_DAYPART = 'forecast_daypart'
+FEATURE_OBSERVATIONS = 'observations'
 
-FIELD_OBSERVATIONS = 'observations'
 FIELD_CONDITION_HUMIDITY = 'humidity'
 FIELD_CONDITION_PRESSURE = 'pressure'
 FIELD_CONDITION_TEMP = 'temp'
 FIELD_CONDITION_WINDDIR = 'winddir'
 FIELD_CONDITION_WINDSPEED = 'windSpeed'
-
 FIELD_DAYPART = 'daypart'
+FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX = 'calendarDayTemperatureMax'
+FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN = 'calendarDayTemperatureMin'
+FIELD_FORECAST_DAYOFWEEK = 'dayOfWeek'
+FIELD_FORECAST_DAYPARTNAME = 'daypartName'
+FIELD_FORECAST_ICONCODE = 'iconCode'
 FIELD_FORECAST_PRECIPCHANCE = 'precipChance'
 FIELD_FORECAST_QPF = 'qpf'
 FIELD_FORECAST_TEMPERATUREMAX = 'temperatureMax'
 FIELD_FORECAST_TEMPERATUREMIN = 'temperatureMin'
-FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX = 'calendarDayTemperatureMax'
-FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN = 'calendarDayTemperatureMin'
 FIELD_FORECAST_VALIDTIMEUTC = 'validTimeUtc'
 FIELD_FORECAST_WINDDIRECTIONCARDINAL = 'windDirectionCardinal'
 FIELD_FORECAST_WINDSPEED = 'windSpeed'
-FIELD_FORECAST_WXPHRASESHORT = 'wxPhraseShort'
 FIELD_FORECAST_WXPHRASELONG = 'wxPhraseLong'
-FIELD_FORECAST_ICONCODE = 'iconCode'
+FIELD_FORECAST_WXPHRASESHORT = 'wxPhraseShort'
+FIELD_LATITUDE = 'lat'
+FIELD_LONGITUDE = 'lon'
+FIELD_OBSERVATIONS = 'observations'
