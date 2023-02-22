@@ -12,7 +12,7 @@
           "latitude": "Latitude - default is retrieved from StationID",
           "longitude": "Longitude - default is retrieved from StationID",
           "name": "Name",
-          "pws_id": "Personal Weather Station ID"
+          "pws_id": "Personal Weather Station ID (Case Sensitive)"
         },
         "title": "WundergroundPWS"
       }
@@ -22,6 +22,7 @@
     "step": {
       "init": {
         "data": {
+          "forecast_sensors": "Create Forecast Sensors ?",
           "numeric_precision": "Numeric Precision",
           "lang": "Language",
           "calendarday_temp": "Show Forecast temperature by Calendar Day period ?",

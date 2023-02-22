@@ -18,11 +18,13 @@
   "windSpeed": "Wind Speed",
   "winddir": "Wind Direction - Degrees",
   "narrative": "Weather Summary",
+  "qpfSnow": "Snow Amount",
   "daypart": {
+    "expired": "Today Expired",
     "narrative": "Forecast Summary",
-    "windSpeed": "Average Wind",
-    "temperature": "Forecast Temperature",
+    "precipChance": "Precipitation Probability",
     "qpf": "Precipitation Amount",
-    "precipChance": "Precipitation Probability"
+    "temperature": "Forecast Temperature",
+    "windSpeed": "Average Wind"
   }
 }

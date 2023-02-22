@@ -10,7 +10,7 @@ from .wupws_obs_sensors import WundergroundPWSSensorEntityDescription
 forecast_sensor_descriptions = [
     # forecast outside daypart
     # calendarDayTemperatureMax: calendarDayTemperatureMin: dayOfWeek: expirationTimeUtc: moonPhase: moonPhaseCode:
-    # moonPhaseDay: moonriseTimeLocal: moonriseTimeUtc: moonsetTimeLocal: moonsetTimeUtc: *narrative: qpf: qpfSnow:
+    # moonPhaseDay: moonriseTimeLocal: moonriseTimeUtc: moonsetTimeLocal: moonsetTimeUtc: *narrative: qpf: *qpfSnow:
     # sunriseTimeLocal: sunriseTimeUtc: sunsetTimeLocal: sunsetTimeUtc: temperatureMax: temperatureMin: validTimeLocal:
     # validTimeUtc:
     WundergroundPWSSensorEntityDescription(
@@ -21,6 +21,17 @@ forecast_sensor_descriptions = [
         value_fn=lambda data, _: cast(str, data),
         entity_registry_enabled_default=False,
     ),
+    WundergroundPWSSensorEntityDescription(
+        key="qpfSnow",
+        name="Snow Amount",
+        feature=FEATURE_FORECAST,
+        icon="mdi:snowflake",
+        device_class=SensorDeviceClass.PRECIPITATION,
+        unit_fn=lambda metric: UnitOfLength.MILLIMETERS if metric else UnitOfLength.INCHES,
+        value_fn=lambda data, _: cast(float, data),
+        entity_registry_enabled_default=False,
+    ),
+
     # forecast daypart 5 day
     # cloudCover: dayOrNight: daypartName: iconCode: iconCodeExtend: *narrative: *precipChance: precipType: *qpf:
     # qpfSnow: qualifierCode: qualifierPhrase: relativeHumidity: snowRange: *temperature: temperatureHeatIndex:
@@ -34,7 +45,7 @@ forecast_sensor_descriptions = [
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
         unit_fn=lambda metric: UnitOfTemperature.CELSIUS if metric else UnitOfTemperature.FAHRENHEIT,
-        value_fn=lambda data, _: cast(float, data),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -42,12 +53,12 @@ forecast_sensor_descriptions = [
         name="Forecast Summary",
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:gauge",
-        value_fn=lambda data, _: cast(str, data),
+        value_fn=lambda data, _: cast(str, data) if (data is not None) else str('—'),
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
         key="windSpeed",
-        name="Avg. Wind",
+        name="Average Wind",
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:weather-windy",
         device_class=SensorDeviceClass.WIND_SPEED,

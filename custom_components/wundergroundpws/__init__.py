@@ -1,5 +1,4 @@
 """The wundergroundpws component."""
-import json
 import logging
 from typing import Final
 from homeassistant.config_entries import ConfigEntry
@@ -8,35 +7,19 @@ from homeassistant.const import (
     CONF_LATITUDE, CONF_LONGITUDE, Platform
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util.unit_system import METRIC_SYSTEM
 from .coordinator import WundergroundPWSUpdateCoordinator, WundergroundPWSUpdateCoordinatorConfig
 from .const import (
     CONF_LANG,
     CONF_NUMERIC_PRECISION,
     CONF_PWS_ID,
-    DOMAIN,
-    ENTRY_LANG,
+    DOMAIN, API_METRIC, API_IMPERIAL, API_URL_METRIC, API_URL_IMPERIAL, CONF_CALENDARDAYTEMPERATURE,
+    CONF_FORECAST_SENSORS
 )
 
 PLATFORMS: Final = [Platform.WEATHER, Platform.SENSOR]
 
 _LOGGER = logging.getLogger(__name__)
-
-
-# def get_tran_file(hass: HomeAssistantType):
-#     """get translation file for wupws sensor friendly_name"""
-#     tfiledir = f'{hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
-#     tfilename = hass.data[DOMAIN][ENTRY_LANG].split('-', 1)[0]
-#     try:
-#         tfile = open(f'{tfiledir}{tfilename}.json')
-#         tfiledata = json.load(tfile)
-#     except Exception:  # pylint: disable=broad-except
-#         tfile = open(f'{tfiledir}en.json')
-#         tfiledata = json.load(tfile)
-#         _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en-US.')
-#
-#     return tfiledata
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
@@ -47,11 +30,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     longitude = entry.options[CONF_LONGITUDE]
 
     if hass.config.units is METRIC_SYSTEM:
-        unit_system_api = 'm'
-        unit_system = 'metric'
+        unit_system_api = API_URL_METRIC
+        unit_system = API_METRIC
     else:
-        unit_system_api = 'e'
-        unit_system = 'imperial'
+        unit_system_api = API_URL_IMPERIAL
+        unit_system = API_IMPERIAL
 
     config = WundergroundPWSUpdateCoordinatorConfig(
         api_key=entry.data[CONF_API_KEY],
@@ -60,9 +43,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         unit_system_api=unit_system_api,
         unit_system=unit_system,
         lang=entry.options[CONF_LANG],
+        calendarday=entry.options[CONF_CALENDARDAYTEMPERATURE],
         latitude=latitude,
         longitude=longitude,
-
+        forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False)
     )
 
     wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
@@ -70,9 +54,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     hass.data[DOMAIN][entry.entry_id] = wupwscoordinator
-    # hass.config_entries.async_setup_platforms(entry, PLATFORMS)
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 

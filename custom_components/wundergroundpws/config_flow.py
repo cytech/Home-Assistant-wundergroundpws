@@ -14,6 +14,7 @@ from .coordinator import InvalidApiKey, InvalidStationId
 from .const import (
     DOMAIN, CONF_PWS_ID, CONF_NUMERIC_PRECISION, CONF_LANG, CONF_CALENDARDAYTEMPERATURE, DEFAULT_NUMERIC_PRECISION,
     DEFAULT_LANG, LANG_CODES, DEFAULT_CALENDARDAYTEMPERATURE, FIELD_OBSERVATIONS, FIELD_LONGITUDE, FIELD_LATITUDE,
+    CONF_FORECAST_SENSORS, DEFAULT_FORECAST_SENSORS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 url = f'https://api.weather.com/v2/pws/observations/current?stationId={pws_id}&format=json&units=e' \
                       f'&apiKey={api_key}'
                 response = await session.get(url, headers=headers)
-            _LOGGER.debug(response.status)
+            # _LOGGER.debug(response.status)
             if response.status != HTTPStatus.OK:
                 # 401 status is most likely bad api_key or api usage limit exceeded
                 if response.status == HTTPStatus.UNAUTHORIZED:
@@ -95,7 +96,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             result_current = await response.json()
             station_id = result_current[FIELD_OBSERVATIONS][0]['stationID']
 
-            unique_id = str(f"wundergroundpws-{station_id}")
+            unique_id = str(f"{DOMAIN}-{station_id}")
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
@@ -114,6 +115,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_NUMERIC_PRECISION: DEFAULT_NUMERIC_PRECISION,
                     CONF_LANG: DEFAULT_LANG,
                     CONF_CALENDARDAYTEMPERATURE: DEFAULT_CALENDARDAYTEMPERATURE,
+                    CONF_FORECAST_SENSORS: DEFAULT_FORECAST_SENSORS
                 },
             )
 
@@ -147,6 +149,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(CONF_FORECAST_SENSORS,
+                                 default=self.config_entry.options.get(CONF_FORECAST_SENSORS,
+                                                                       DEFAULT_FORECAST_SENSORS)): bool,
                     vol.Optional(CONF_NUMERIC_PRECISION, default=self.config_entry.options.get(CONF_NUMERIC_PRECISION,
                                  DEFAULT_NUMERIC_PRECISION)): vol.All(vol.In(['none', 'decimal'])),
                     vol.Optional(CONF_LANG, default=self.config_entry.options.get(CONF_LANG, DEFAULT_LANG)):

@@ -7,7 +7,7 @@
           "latitude": "[%key:common::config_flow::data::latitude%]",
           "longitude": "[%key:common::config_flow::data::longitude%]",
           "name": "Name of the integration",
-          "pws_id": "Personal Weather Station ID"
+          "pws_id": "Personal Weather Station ID (Case Sensitive)"
         },
         "description": "Set up WundergroundPWS integration. To generate API key go to https://www.wunderground.com/member/api-keys",
         "title": "WundergroundPWS"
@@ -23,6 +23,7 @@
     "step": {
       "init": {
         "data": {
+          "forecast_sensors": "Create Forecast Sensors ?",
           "numeric_precision": "Numeric Precision",
           "lang": "Language",
           "calendarday_temp": "Show Forecast temperature by Calendar Day period ?",

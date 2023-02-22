@@ -18,8 +18,9 @@ from homeassistant.util.unit_system import METRIC_SYSTEM
 from config.custom_components.wundergroundpws import WundergroundPWSUpdateCoordinator
 
 from .const import (
-    API_IMPERIAL, API_METRIC, CONF_ATTRIBUTION, DOMAIN, FIELD_DAYPART, FIELD_OBSERVATIONS, MAX_FORECAST_DAYS,
-    FEATURE_CONDITIONS, FEATURE_FORECAST, FEATURE_FORECAST_DAYPART, FIELD_FORECAST_DAYPARTNAME, FIELD_FORECAST_DAYOFWEEK
+    CONF_ATTRIBUTION, DOMAIN, FIELD_DAYPART, FIELD_OBSERVATIONS, MAX_FORECAST_DAYS,
+    FEATURE_CONDITIONS, FEATURE_FORECAST, FEATURE_FORECAST_DAYPART, FIELD_FORECAST_DAYPARTNAME,
+    FIELD_FORECAST_DAYOFWEEK, FIELD_FORECAST_EXPIRED
 )
 from .wupws_obs_sensors import *
 from .wupws_forecast_sensors import *
@@ -46,19 +47,20 @@ async def async_setup_entry(
         WundergroundPWSSensor(coordinator, description) for description in SENSOR_DESCRIPTIONS
     ]
 
-    sensors.extend(
-        WundergroundPWSForecastSensor(coordinator, description, forecast_day=day)
-        for day in range(MAX_FORECAST_DAYS)
-        for description in FORECAST_SENSOR_DESCRIPTIONS
-        if description.feature == FEATURE_FORECAST
-    )
+    if coordinator.forecast_enable:
+        sensors.extend(
+            WundergroundPWSForecastSensor(coordinator, description, forecast_day=day)
+            for day in range(MAX_FORECAST_DAYS)
+            for description in FORECAST_SENSOR_DESCRIPTIONS
+            if description.feature == FEATURE_FORECAST
+        )
 
-    sensors.extend(
-        WundergroundPWSForecastSensor(coordinator, description, forecast_day=day)
-        for day in range(MAX_FORECAST_DAYS * 2)
-        for description in FORECAST_SENSOR_DESCRIPTIONS
-        if description.feature == FEATURE_FORECAST_DAYPART
-    )
+        sensors.extend(
+            WundergroundPWSForecastSensor(coordinator, description, forecast_day=day)
+            for day in range(MAX_FORECAST_DAYS * 2)
+            for description in FORECAST_SENSOR_DESCRIPTIONS
+            if description.feature == FEATURE_FORECAST_DAYPART
+        )
 
     async_add_entities(sensors)
 
@@ -85,7 +87,7 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
                 self._attr_unique_id = (
                     f"{self.coordinator.pws_id},{description.key}_{forecast_day}fdp".lower()
                 )
-                if forecast_day in [0, 2, 4, 6, 8]:  # days
+                if forecast_day in range(0, MAX_FORECAST_DAYS, 2):  # [0, 2, 4, 6, 8]  days
                     self.entity_id = generate_entity_id(
                         entity_id_format, f"{self.coordinator.pws_id}_{description.name}_{forecast_day}d",
                         hass=coordinator.hass
@@ -110,17 +112,11 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
                 entity_id_format, f"{self.coordinator.pws_id}_{description.name}", hass=coordinator.hass
             )
             self.forecast_day = None
-        if self.coordinator.hass.config.units is METRIC_SYSTEM:
-            self._unit_system = API_METRIC
-        else:
-            self._unit_system = API_IMPERIAL
-        self._attr_native_unit_of_measurement = self.entity_description.unit_fn(
-            self.coordinator.hass.config.units is METRIC_SYSTEM
-        )
-
+        self._unit_system = coordinator.unit_system
         self._sensor_data = _get_sensor_data(
-            coordinator.data, description.key, self._unit_system, description.feature, forecast_day
-        )
+            coordinator.data, description.key, self._unit_system, description.feature, forecast_day)
+        self._attr_native_unit_of_measurement = self.entity_description.unit_fn(
+            self.coordinator.hass.config.units is METRIC_SYSTEM) if self._sensor_data is not None else ""
 
     @property
     def available(self) -> bool:
@@ -134,9 +130,13 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
                 self.entity_description.key in self.coordinator._tranfile[FIELD_DAYPART].keys():
             if self.forecast_day is not None:
                 if self.entity_description.feature == FEATURE_FORECAST_DAYPART:
-                    return self.coordinator._tranfile[FIELD_DAYPART][self.entity_description.key] + " " + \
-                        self.coordinator.data[FIELD_DAYPART][0][FIELD_FORECAST_DAYPARTNAME][
-                            self.forecast_day]
+                    if self.coordinator.data[FIELD_DAYPART][0][FIELD_FORECAST_DAYPARTNAME][self.forecast_day] is not None:
+                        return self.coordinator._tranfile[FIELD_DAYPART][self.entity_description.key] + " " + \
+                            self.coordinator.data[FIELD_DAYPART][0][FIELD_FORECAST_DAYPARTNAME][
+                                self.forecast_day]
+                    else:
+                        return self.coordinator._tranfile[FIELD_DAYPART][self.entity_description.key] + " " + \
+                            self.coordinator._tranfile[FIELD_DAYPART][FIELD_FORECAST_EXPIRED]
                 return self.coordinator._tranfile[self.entity_description.key] + " " + \
                     self.coordinator.data[FIELD_FORECAST_DAYOFWEEK][self.forecast_day]
             return self.coordinator._tranfile[self.entity_description.key]

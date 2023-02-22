@@ -18,11 +18,13 @@
   "windSpeed": "Windgeschwindigkeit",
   "winddir": "Windrichtung - Grad",
   "narrative": "Wetterzusammenfassung",
+  "qpfSnow": "Schneemenge",
   "daypart": {
+    "expired": "Heute abgelaufen",
     "narrative": "Prognosezusammenfassung",
-    "windSpeed": "Durchschnittlicher Wind",
-    "temperature": "Voraussichtliche Temperatur",
+    "precipChance": "Niederschlagswahrscheinlichkeit",
     "qpf": "Niederschlagsmenge",
-    "precipChance": "Niederschlagswahrscheinlichkeit"
+    "temperature": "Voraussichtliche Temperatur",
+    "windSpeed": "Durchschnittlicher Wind"
   }
 }

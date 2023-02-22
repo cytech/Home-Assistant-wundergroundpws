@@ -45,7 +45,7 @@ obs_sensor_descriptions = [
     ),
     WundergroundPWSSensorEntityDescription(
         key="obsTimeLocal",
-        name="Local observation Time",
+        name="Local Observation Time",
         feature=FEATURE_OBSERVATIONS,
         icon="mdi:clock",
         value_fn=lambda data, _: cast(str, data),
@@ -76,7 +76,7 @@ obs_sensor_descriptions = [
         device_class=SensorDeviceClass.IRRADIANCE,
         state_class=SensorStateClass.MEASUREMENT,
         unit_fn=lambda _: UnitOfIrradiance.WATTS_PER_SQUARE_METER,
-        value_fn=lambda data, _: cast(str, data),
+        value_fn=lambda data, _: cast(int, data) or 0,
     ),
     WundergroundPWSSensorEntityDescription(
         key="uv",
@@ -85,7 +85,7 @@ obs_sensor_descriptions = [
         icon="mdi:sunglasses",
         state_class=SensorStateClass.MEASUREMENT,
         unit_fn=lambda _: UV_INDEX,
-        value_fn=lambda data, _: cast(str, data),
+        value_fn=lambda data, _: cast(int, data) or 0,
     ),
     WundergroundPWSSensorEntityDescription(
         key="winddir",

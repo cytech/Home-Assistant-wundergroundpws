@@ -9,8 +9,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
-    ENTRY_PWS_ID,
-    ENTRY_CALENDARDAYTEMPERATURE,
 
     TEMPUNIT,
     LENGTHUNIT,
@@ -82,7 +80,7 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
         self.entity_id = generate_entity_id(
             ENTITY_ID_FORMAT, f"{self._attr_name}", hass=coordinator.hass
         )
-        self._attr_unique_id = f"{ENTRY_PWS_ID}"
+        self._attr_unique_id = f"{coordinator.pws_id},{WEATHER_DOMAIN}".lower()
 
     @property
     def native_temperature(self) -> float:
@@ -164,8 +162,7 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
         days = [0, 2, 4, 6, 8]
         if self.coordinator.get_forecast('temperature', 0) is None:
             days[0] += 1
-
-        if self.coordinator.data.get(ENTRY_CALENDARDAYTEMPERATURE) is True:
+        if self.coordinator._calendarday is True:
             caldaytempmax = FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX
             caldaytempmin = FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN
         else:

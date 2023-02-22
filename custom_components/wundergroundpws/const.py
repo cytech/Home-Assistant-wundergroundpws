@@ -31,12 +31,12 @@ CONF_PWS_ID = 'pws_id'
 CONF_NUMERIC_PRECISION = 'numeric_precision'
 CONF_LANG = 'lang'
 CONF_CALENDARDAYTEMPERATURE = 'calendarday_temp'
+CONF_FORECAST_SENSORS = 'forecast_sensors'
 
 ENTRY_PWS_ID = 'pws_id'
 ENTRY_WEATHER_COORDINATOR = 'weather_coordinator'
 ENTRY_LANG = 'lang'
 ENTRY_CALENDARDAYTEMPERATURE = 'calendarday_temp'
-# ENTRY_TRAN_FILE = 'tranfile'
 
 # Language Supported Codes
 LANG_CODES = [
@@ -73,9 +73,12 @@ ICON_CONDITION_MAP: Final[dict[str, list[int]]] = {
 DEFAULT_NUMERIC_PRECISION = 'none'
 DEFAULT_LANG = 'en-US'
 DEFAULT_CALENDARDAYTEMPERATURE = False
+DEFAULT_FORECAST_SENSORS = False
 MAX_FORECAST_DAYS: Final = 5
 API_IMPERIAL: Final = "imperial"
 API_METRIC: Final = "metric"
+API_URL_IMPERIAL: Final = "e"
+API_URL_METRIC: Final = "m"
 
 TEMPUNIT = 0
 LENGTHUNIT = 1
@@ -100,6 +103,7 @@ FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX = 'calendarDayTemperatureMax'
 FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN = 'calendarDayTemperatureMin'
 FIELD_FORECAST_DAYOFWEEK = 'dayOfWeek'
 FIELD_FORECAST_DAYPARTNAME = 'daypartName'
+FIELD_FORECAST_EXPIRED = 'expired'
 FIELD_FORECAST_ICONCODE = 'iconCode'
 FIELD_FORECAST_PRECIPCHANCE = 'precipChance'
 FIELD_FORECAST_QPF = 'qpf'
