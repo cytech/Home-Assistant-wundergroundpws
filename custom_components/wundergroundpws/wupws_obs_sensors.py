@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Any, cast
 
-from config.custom_components.wundergroundpws.const import FEATURE_OBSERVATIONS, FEATURE_CONDITIONS
+from .const import FEATURE_OBSERVATIONS, FEATURE_CONDITIONS
 from homeassistant.components.sensor import SensorEntityDescription, SensorDeviceClass, SensorStateClass
 from homeassistant.const import PERCENTAGE, UnitOfIrradiance, UV_INDEX, DEGREE, UnitOfLength, UnitOfTemperature, \
     UnitOfVolumetricFlux, UnitOfPressure, UnitOfSpeed

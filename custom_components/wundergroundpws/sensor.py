@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util.unit_system import METRIC_SYSTEM
 
-from config.custom_components.wundergroundpws import WundergroundPWSUpdateCoordinator
+from .coordinator import WundergroundPWSUpdateCoordinator
 
 from .const import (
     CONF_ATTRIBUTION, DOMAIN, FIELD_DAYPART, FIELD_OBSERVATIONS, MAX_FORECAST_DAYS,
