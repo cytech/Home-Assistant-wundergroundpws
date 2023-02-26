@@ -42,7 +42,6 @@ forecast_sensor_descriptions = [
         name="Forecast Temperature",
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:thermometer",
-        state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
         unit_fn=lambda metric: UnitOfTemperature.CELSIUS if metric else UnitOfTemperature.FAHRENHEIT,
         value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
@@ -63,7 +62,7 @@ forecast_sensor_descriptions = [
         icon="mdi:weather-windy",
         device_class=SensorDeviceClass.WIND_SPEED,
         unit_fn=lambda metric: UnitOfSpeed.KILOMETERS_PER_HOUR if metric else UnitOfSpeed.MILES_PER_HOUR,
-        value_fn=lambda data, _: cast(float, data),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -73,7 +72,7 @@ forecast_sensor_descriptions = [
         icon="mdi:umbrella",
         device_class=SensorDeviceClass.PRECIPITATION,
         unit_fn=lambda metric: UnitOfLength.MILLIMETERS if metric else UnitOfLength.INCHES,
-        value_fn=lambda data, _: cast(float, data),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -82,7 +81,7 @@ forecast_sensor_descriptions = [
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:umbrella",
         unit_fn=lambda _: PERCENTAGE,
-        value_fn=lambda data, _: cast(float, data),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
         entity_registry_enabled_default=False,
     ),
 ]
