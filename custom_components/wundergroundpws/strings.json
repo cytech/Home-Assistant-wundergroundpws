@@ -26,7 +26,7 @@
           "forecast_sensors": "Create Forecast Sensors ?",
           "numeric_precision": "Numeric Precision",
           "lang": "Language",
-          "calendarday_temp": "Show Forecast temperature by Calendar Day period ?",
+          "calendarday_temp": "Temperature by Calendar Day? (experimental)",
           "latitude": "Latitude",
           "longitude": "Longitude"
         }
