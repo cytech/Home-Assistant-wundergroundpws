@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import cast
 
 from .const import FEATURE_FORECAST, FEATURE_FORECAST_DAYPART
-from homeassistant.components.sensor import SensorStateClass, SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import UnitOfTemperature, UnitOfSpeed, UnitOfLength, PERCENTAGE
 from .wupws_obs_sensors import WundergroundPWSSensorEntityDescription
 

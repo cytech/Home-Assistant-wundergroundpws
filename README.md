@@ -1,4 +1,6 @@
 # Home-Assistant-Wundergroundpws v2.X.X
+**_V2 is not released and still under development. Use at your own risk.._**  
+
 Home Assistant custom integration for Weather Underground personal weather station users.  
 Includes a native Home Assistant Weather Entity and a variety of weather sensors.  
 Current conditions are generated from the wundergroundpws configured station ID.  
@@ -51,6 +53,7 @@ Please consider this when using the following information.
 
 
 # Installation
+
 Download the latest v2.X.X release zip file from this repository.
 Extract the zip file to a temporary directory.
 -------
