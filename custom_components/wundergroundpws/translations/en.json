@@ -9,11 +9,10 @@
       "user": {
         "data": {
           "api_key": "API Key",
-          "latitude": "Latitude - default is retrieved from StationID",
-          "longitude": "Longitude - default is retrieved from StationID",
           "name": "Name",
           "pws_id": "Personal Weather Station ID (Case Sensitive)"
         },
+        "description": "Set up WundergroundPWS integration. To generate API key go to https://www.wunderground.com/member/api-keys",
         "title": "WundergroundPWS"
       }
     }

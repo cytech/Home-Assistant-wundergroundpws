@@ -1,0 +1,34 @@
+{
+  "config": {
+    "error": {
+      "invalid_station_id": "Неверный идентификатор станции",
+      "invalid_api_key": "Недействительный ключ API",
+      "unknown_error": "Неизвестная ошибка"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "API-ключ",
+          "name": "Имя",
+          "pws_id": "Идентификатор персональной метеостанции (с учетом регистра)"
+        },
+        "description": "Настройте интеграцию WundergroundPWS. ",
+        "title": "WundergroundPWS"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "forecast_sensors": "Создать датчики прогноза?",
+          "numeric_precision": "Числовая точность",
+          "lang": "Язык",
+          "calendarday_temp": "Температура по календарным дням? ",
+          "latitude": "Широта — по умолчанию извлекается из StationID",
+          "longitude": "Долгота — по умолчанию извлекается из StationID."
+        }
+      }
+    }
+  }
+}
