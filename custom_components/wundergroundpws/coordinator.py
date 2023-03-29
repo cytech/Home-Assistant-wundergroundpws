@@ -116,7 +116,10 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
 
     async def get_weather(self):
         """Get weather data."""
-        headers = {'Accept-Encoding': 'gzip'}
+        headers = {
+            'Accept-Encoding': 'gzip',
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+        }
         try:
             with async_timeout.timeout(10):
                 url = self._build_url(_RESOURCECURRENT)

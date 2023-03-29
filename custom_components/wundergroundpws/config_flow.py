@@ -41,7 +41,10 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         pws_id = user_input[CONF_PWS_ID]
         api_key = user_input[CONF_API_KEY]
-        headers = {'Accept-Encoding': 'gzip'}
+        headers = {
+            'Accept-Encoding': 'gzip',
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+        }
         try:
             if user_input[CONF_API_KEY] is None or user_input[CONF_API_KEY] == "":
                 errors["base"] = "invalid_api_key"
