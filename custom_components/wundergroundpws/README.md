@@ -270,7 +270,7 @@ All the conditions listed above will be updated every 5 minutes.
 
 **_Wunderground API caveat:   
 The daypart object as well as the temperatureMax field OUTSIDE of the daypart object will appear as null in the API after 3:00pm Local Apparent Time.  
-The affected sensors will return as "Today Expired" with a value of "—" when this condition is met._**
+The affected sensors will return as "Today Expired" with a value of "Unknown" when this condition is met._**
 
 
 Variations above marked with "#d" are daily forecasts.

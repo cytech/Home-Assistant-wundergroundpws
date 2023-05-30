@@ -44,7 +44,7 @@ forecast_sensor_descriptions = [
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
         unit_fn=lambda metric: UnitOfTemperature.CELSIUS if metric else UnitOfTemperature.FAHRENHEIT,
-        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else None,
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -52,7 +52,7 @@ forecast_sensor_descriptions = [
         name="Forecast Summary",
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:gauge",
-        value_fn=lambda data, _: cast(str, data) if (data is not None) else str('—'),
+        value_fn=lambda data, _: cast(str, data) if (data is not None) else None,
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -62,7 +62,7 @@ forecast_sensor_descriptions = [
         icon="mdi:weather-windy",
         device_class=SensorDeviceClass.WIND_SPEED,
         unit_fn=lambda metric: UnitOfSpeed.KILOMETERS_PER_HOUR if metric else UnitOfSpeed.MILES_PER_HOUR,
-        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else None,
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -72,7 +72,7 @@ forecast_sensor_descriptions = [
         icon="mdi:umbrella",
         device_class=SensorDeviceClass.PRECIPITATION,
         unit_fn=lambda metric: UnitOfLength.MILLIMETERS if metric else UnitOfLength.INCHES,
-        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else None,
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(
@@ -81,7 +81,7 @@ forecast_sensor_descriptions = [
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:umbrella",
         unit_fn=lambda _: PERCENTAGE,
-        value_fn=lambda data, _: cast(float, data) if (data is not None) else str('—'),
+        value_fn=lambda data, _: cast(float, data) if (data is not None) else None,
         entity_registry_enabled_default=False,
     ),
 ]
