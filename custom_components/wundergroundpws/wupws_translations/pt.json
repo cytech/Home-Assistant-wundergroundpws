@@ -38,8 +38,8 @@
   "temp_low_5d": "Temperatura Baixa em 5 Dias",
   "today_summary": "Resumo de hoje",
   "uv": "Índice UV",
-  "windChill": "Resfriamento do vento",
-  "windDirectionName": "Direção do Vento - Cardeal",
+  "windChill": "windChill",
+  "windDirectionName": "Rumo do Vento - Cardeal",
   "windGust": "Rajada de vento",
   "windSpeed": "Velocidade do vento",
   "wind_1d": "Vento médio hoje",
@@ -47,5 +47,5 @@
   "wind_3d": "Vento médio em 3 dias",
   "wind_4d": "Vento médio em 4 dias",
   "wind_5d": "Vento médio em 5 dias",
-  "winddir": "Direção do Vento - Graus"
+  "winddir": "Rumo do Vento - Graus"
 }
