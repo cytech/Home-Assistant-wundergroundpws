@@ -25,6 +25,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
+ - WUNDERGROUNDPWS VERSION
  - HOME ASSISTANT VERSION AND INSTALLATION TYPE (e.g.  2023.06.4)
  - OS: [e.g. 10.3, venv, etc.]
  - Browser [e.g. chrome, safari]
