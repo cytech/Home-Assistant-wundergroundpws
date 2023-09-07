@@ -1,3 +1,9 @@
+v2.0.3
+fix load failure on hass 2023.9.0
+_attr_visibility
+does not address deprecation of forecast
+"this is deprecated and will be unsupported from Home Assistant 2024.3"
+
 v2.0.2
 fix error on expired sensors - HASS 2023.5 rejecting string "-", change to None (shows as "Unknown) 
 corrects issues # 169, 173
