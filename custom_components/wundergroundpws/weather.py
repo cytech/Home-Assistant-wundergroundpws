@@ -132,15 +132,15 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
         """Return the ozone level."""
         return self._attr_ozone
 
-    @property
-    def native_visibility(self) -> float:
-        """Return the visibility in native units."""
-        return self._attr_visibility
-
-    @property
-    def native_visibility_unit(self) -> str:
-        """Return the native unit of measurement for visibility."""
-        return self._attr_visibility_unit
+    # @property
+    # def native_visibility(self) -> float:
+    #     """Return the visibility in native units."""
+    #     return self._attr_visibility
+    #
+    # @property
+    # def native_visibility_unit(self) -> str:
+    #     """Return the native unit of measurement for visibility."""
+    #     return self._attr_visibility_unit
 
     @property
     def native_precipitation_unit(self) -> str:
