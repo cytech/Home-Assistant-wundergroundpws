@@ -9,6 +9,10 @@ The `wundergroundpws` platform uses [Weather Underground](http://www.wundergroun
 
 :+1: If you find this software useful, feel free to make a donation: [Paypal.me Donation Link](https://paypal.me/cytecheng)  
 
+**v2.0.4 Upgrade notes:**  
+_requires Home Assistant version 2023.9 or greater._  
+_If the forecast is not displayed in the weather card after upgrading from v2.x.x to v2.0.4, edit the weather card in the dashboard and re-save it._  
+
 -------------------
 
 [Prerequisites](#installation-prerequisites)
@@ -18,6 +22,8 @@ The `wundergroundpws` platform uses [Weather Underground](http://www.wundergroun
 [Installation](#installation)
 
 [Upgrade](#upgrade)
+
+[Configure](#configure)
 
 [Description of terms and variables](#description-of-terms-and-variables)
 
@@ -106,6 +112,35 @@ Install v2.x.x (See [Install](#installation) above).
 Reconfigure any lovelace cards, automations, scripts, etc to reflect new sensor names.  
 [Back to top](#top) 
 
+# Configure
+Wundergroundpws integration configuration options available at:  
+Settings-Devices & Services-Wundergroundpws-Configure  
+
+**OPTIONS:**  
+**Create Forecast Sensors?**  
+Forecast sensors are not created by default. They will be created if you enable "Create Forecast Sensors" in the integration "Configure".  
+Forecast sensors will then be created but are disabled. To enable, goto the integration - entities and select the sensors you would like and enable them.  
+
+**Numeric Precision**  
+none (integer) or decimal (single).  
+Only applies to PWS current values (not forecast) in sensors (not weather entity).
+
+**Language**  
+Specify the language that the API returns.  
+The default is English (en-US).
+
+**Temperature by Calendar Day?** (experimental)  
+**_USE AT YOUR OWN RISK_** - Undocumented in The Weather Company PWS observations API.  
+If checked, retrieves Forecast temperature max/min relative to calendar day (12:00am -> 11:59pm) as opposed to API period (~7:00am -> ~6:59am).      
+Only affects the weather entity forecast values, not the sensors.  
+This field is undocumented in The Weather Company PWS API, so it is subject to change and if removed from API response in the future, will crash the integration if set true.
+
+**Latitude** - Default is retrieved from StationID  
+Override Latitude coordinate for weather forecast.
+
+**Longitude** - Default is retrieved from StationID  
+Override Longitude coordinate for weather forecast.  
+[Back to top](#top) 
         
 # Description of terms and variables
 ```yaml

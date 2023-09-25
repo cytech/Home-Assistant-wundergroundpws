@@ -7,6 +7,7 @@ https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v2.X.X
 from . import WundergroundPWSUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 from .const import (
     DOMAIN,
 
@@ -45,6 +46,7 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_WIND_BEARING,
     ATTR_FORECAST_WIND_SPEED,
     WeatherEntity,
+    WeatherEntityFeature,
     Forecast,
     DOMAIN as WEATHER_DOMAIN
 )
@@ -81,6 +83,12 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
             ENTITY_ID_FORMAT, f"{self._attr_name}", hass=coordinator.hass
         )
         self._attr_unique_id = f"{coordinator.pws_id},{WEATHER_DOMAIN}".lower()
+
+    @property
+    def supported_features(self) -> int | None:
+        """Flag supported features."""
+        # return WeatherEntityFeature.FORECAST_HOURLY if self.coordinator.config.hourly_forecast else WeatherEntityFeature.FORECAST_DAILY
+        return WeatherEntityFeature.FORECAST_DAILY
 
     @property
     def native_temperature(self) -> float:
@@ -156,8 +164,8 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
         night = self.coordinator.get_forecast(FIELD_FORECAST_ICONCODE, 1)
         return self.coordinator._iconcode_to_condition(day or night)
 
-    @property
-    def forecast(self) -> list[Forecast]:
+
+    def _forecast(self) -> list[Forecast]:
         """Return the forecast in native units."""
         days = [0, 2, 4, 6, 8]
         if self.coordinator.get_forecast('temperature', 0) is None:
@@ -189,8 +197,8 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
                         caldaytempmin, period),
 
                 ATTR_FORECAST_TIME:
-                    self.coordinator.get_forecast(
-                        FIELD_FORECAST_VALIDTIMEUTC, period) * 1000,
+                    dt_util.utc_from_timestamp(self.coordinator.get_forecast(
+                        FIELD_FORECAST_VALIDTIMEUTC, period)).isoformat(),
 
                 ATTR_FORECAST_WIND_BEARING:
                     self.coordinator.get_forecast(
@@ -200,3 +208,7 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
             }))
         # _LOGGER.debug(f'{forecast=}')
         return forecast
+
+    async def async_forecast_daily(self) -> list[Forecast] | None:
+        """Return the daily forecast in native units."""
+        return self._forecast()
