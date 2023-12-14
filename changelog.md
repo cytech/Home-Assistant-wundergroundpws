@@ -1,4 +1,8 @@
-v2.04  
+v2.0.5  
+fix error in cardinal wind direction when api returns None
+
+
+v2.0.4  
 requires Home Assistant version 2023.9 or greater  
 address weather entity forecast deprecation for 2024.3  
 return forecast date of weather entity in UTC RFC 3339  (issue #183)  

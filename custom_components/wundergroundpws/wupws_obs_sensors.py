@@ -28,8 +28,10 @@ class WundergroundPWSSensorEntityDescription(
 
 def degrees_to_cardinal(d):
     dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
-    ix = round(d / (360. / len(dirs)))
-    return dirs[ix % len(dirs)]
+    if d is not None:
+        ix = round(d / (360. / len(dirs)))
+        return dirs[ix % len(dirs)]
+    return 'None'
 
 
 obs_sensor_descriptions = [
