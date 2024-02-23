@@ -7,6 +7,7 @@ from homeassistant.const import (
     CONF_LATITUDE, CONF_LONGITUDE, Platform
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.util.unit_system import METRIC_SYSTEM
 from .coordinator import WundergroundPWSUpdateCoordinator, WundergroundPWSUpdateCoordinatorConfig
 from .const import (
@@ -51,6 +52,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
     await wupwscoordinator.async_config_entry_first_refresh()
+    if not wupwscoordinator.last_update_success:
+        raise ConfigEntryNotReady
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     hass.data[DOMAIN][entry.entry_id] = wupwscoordinator

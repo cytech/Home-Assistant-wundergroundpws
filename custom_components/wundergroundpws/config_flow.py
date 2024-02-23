@@ -15,6 +15,7 @@ from .const import (
     DOMAIN, CONF_PWS_ID, CONF_NUMERIC_PRECISION, CONF_LANG, CONF_CALENDARDAYTEMPERATURE, DEFAULT_NUMERIC_PRECISION,
     DEFAULT_LANG, LANG_CODES, DEFAULT_CALENDARDAYTEMPERATURE, FIELD_OBSERVATIONS, FIELD_LONGITUDE, FIELD_LATITUDE,
     CONF_FORECAST_SENSORS, DEFAULT_FORECAST_SENSORS,
+    DEFAULT_TIMEOUT
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_station_id"
                 raise InvalidStationId
 
-            with async_timeout.timeout(10):
+            with async_timeout.timeout(DEFAULT_TIMEOUT):
                 url = f'https://api.weather.com/v2/pws/observations/current?stationId={pws_id}&format=json&units=e' \
                       f'&apiKey={api_key}'
                 response = await session.get(url, headers=headers)

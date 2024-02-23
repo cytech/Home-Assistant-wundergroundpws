@@ -1,3 +1,8 @@
+v2.0.6  
+Increase default rest timeout from 10 seconds to 30 seconds  
+Starting with home assistant 2024, rest availability on Home Assistant Operating System (on Raspberry Pi ?) after restart is delayed and causing setup failure.  
+If you still get a WUPWS setup error after restarting Home Assistant, you can try and change the DEFAULT_TIMEOUT in const.py to 60 seconds. 
+
 v2.0.5  
 fix error in cardinal wind direction when api returns None
 

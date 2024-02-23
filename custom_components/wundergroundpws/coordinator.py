@@ -29,7 +29,8 @@ from .const import (
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
     FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
-    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, DOMAIN, FIELD_LONGITUDE, FIELD_LATITUDE
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, DOMAIN, FIELD_LONGITUDE, FIELD_LATITUDE,
+    DEFAULT_TIMEOUT
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -121,7 +122,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
         }
         try:
-            with async_timeout.timeout(10):
+            with async_timeout.timeout(DEFAULT_TIMEOUT):
                 url = self._build_url(_RESOURCECURRENT)
                 response = await self._session.get(url, headers=headers)
                 result_current = await response.json()
@@ -134,7 +135,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 if not self._latitude:
                     self._latitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE])
 
-            with async_timeout.timeout(10):
+            with async_timeout.timeout(DEFAULT_TIMEOUT):
                 url = self._build_url(_RESOURCEFORECAST)
                 response = await self._session.get(url, headers=headers)
                 result_forecast = await response.json()
