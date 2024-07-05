@@ -1,3 +1,7 @@
+v2.0.7  
+Move sensor translation file initialization to WundergroundPWSUpdateCoordinatorConfig in `__init__.py`    
+Fixes "Detected blocking call to open with args" warning
+
 v2.0.6  
 Increase default rest timeout from 10 seconds to 30 seconds  
 Starting with home assistant 2024, rest availability on Home Assistant Operating System (on Raspberry Pi ?) after restart is delayed and causing setup failure.  

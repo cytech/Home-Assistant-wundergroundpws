@@ -15,7 +15,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.util import json
 from homeassistant.util.unit_system import METRIC_SYSTEM
 from homeassistant.const import (
     PERCENTAGE, UnitOfPressure, UnitOfTemperature, UnitOfLength, UnitOfSpeed, UnitOfVolumetricFlux)
@@ -29,7 +28,7 @@ from .const import (
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
     FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
-    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, DOMAIN, FIELD_LONGITUDE, FIELD_LATITUDE,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, FIELD_LONGITUDE, FIELD_LATITUDE,
     DEFAULT_TIMEOUT
 )
 
@@ -59,6 +58,7 @@ class WundergroundPWSUpdateCoordinatorConfig:
     longitude: str
     forecast_enable: bool
     update_interval = MIN_TIME_BETWEEN_UPDATES
+    tranfile: str
 
 
 class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
@@ -84,7 +84,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         self._features = set()
         self.data = None
         self._session = async_get_clientsession(self._hass)
-        self._tranfile = self.get_tran_file()
+        self._tranfile = config.tranfile
 
         if self._unit_system_api == 'm':
             self.units_of_measurement = (UnitOfTemperature.CELSIUS, UnitOfLength.MILLIMETERS, UnitOfLength.METERS,
@@ -223,17 +223,6 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 return condition
         _LOGGER.warning(f'Unmapped iconCode from TWC Api. (44 is Not Available (N/A)) "{icon_code}". ')
         return None
-
-    def get_tran_file(self):
-        """get translation file for wupws sensor friendly_name"""
-        tfiledir = f'{self._hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
-        tfilename = self._lang.split('-', 1)[0]
-        try:
-            tfiledata = json.load_json(f'{tfiledir}{tfilename}.json')
-        except Exception:  # pylint: disable=broad-except
-            tfiledata = json.load_json(f'{tfiledir}en.json')
-            _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en-US.')
-        return tfiledata
 
 
 class InvalidApiKey(HomeAssistantError):
