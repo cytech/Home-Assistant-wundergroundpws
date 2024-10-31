@@ -52,7 +52,7 @@ forecast_sensor_descriptions = [
         name="Forecast Summary",
         feature=FEATURE_FORECAST_DAYPART,
         icon="mdi:gauge",
-        value_fn=lambda data, _: cast(str, data) if (data is not None) else None,
+        value_fn=lambda data, _: cast(str, data),
         entity_registry_enabled_default=False,
     ),
     WundergroundPWSSensorEntityDescription(

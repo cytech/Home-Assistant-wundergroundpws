@@ -1,3 +1,9 @@
+v2.08  
+modify Forecast Summary sensor initialization.  
+when integration was loaded after 3:00 pm apparent time, None was set as value type instead of string, causing failure.  
+addresses issues in discussion #s  [248](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/248) and [246](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/246)  
+
+
 v2.0.7  
 Move sensor translation file initialization to WundergroundPWSUpdateCoordinatorConfig in `__init__.py`    
 Fixes "Detected blocking call to open with args" warning
