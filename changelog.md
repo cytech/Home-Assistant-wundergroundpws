@@ -1,4 +1,8 @@
-v2.08  
+v2.0.9  
+replace removed python async_timeout.timeout with asyncio.timeout  
+addresses issues in discussion #s  [260](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/260) and [261](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/261)
+
+v2.0.8  
 modify Forecast Summary sensor initialization.  
 when integration was loaded after 3:00 pm apparent time, None was set as value type instead of string, causing failure.  
 addresses issues in discussion #s  [248](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/248) and [246](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/246)  

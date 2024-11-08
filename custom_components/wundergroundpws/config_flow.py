@@ -2,7 +2,7 @@
 from __future__ import annotations
 import logging
 from http import HTTPStatus
-import async_timeout
+from asyncio import timeout
 import voluptuous as vol
 from homeassistant import config_entries
 import homeassistant.helpers.config_validation as cv
@@ -55,7 +55,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_station_id"
                 raise InvalidStationId
 
-            with async_timeout.timeout(DEFAULT_TIMEOUT):
+            async with timeout(DEFAULT_TIMEOUT):
                 url = f'https://api.weather.com/v2/pws/observations/current?stationId={pws_id}&format=json&units=e' \
                       f'&apiKey={api_key}'
                 response = await session.get(url, headers=headers)
