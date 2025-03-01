@@ -60,12 +60,21 @@ Please consider this when using the following information.
 
 # Installation
 
-Download the latest v2.X.X release zip file from this repository.
-Extract the zip file to a temporary directory.
--------
-Copy the custom_components directory from the extracted file into your .homeassistant directory.  
+## Install using HACS
+
+1. The installation is done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store). If you don't have HACS, you must install it before adding this integration. [Installation instructions here.](https://hacs.xyz/docs/setup/download)
+2. Once HACS is installed, navigate to the 'Integrations' tab in HACS and search for the 'Wundergroundpws' integration there. Click "Download this repository in HACS". On the next screen, select "Download". Once fully downloaded, restart Home Assistant.
+
+
+## Manual Install
+
+1. Download the latest [v2.X.X release](https://github.com/cytech/Home-Assistant-wundergroundpws/releases) zip file from the repository and extract the zip file to a temporary directory.
+2. Copy the custom_components directory from the extracted file into your .homeassistant directory.  
 or  
 Copy the contents of the custom_components directory from the extracted file into an existing custom_components directory in your .homeassistant directory.
+3. Resstart Home Assistant
+
+## Create Instance
 
 1. In Home Assistant Settings, select DEVICES & SERVICES, then ADD INTEGRATION.  
 2. Select the "wundergroundpws" integration.  
