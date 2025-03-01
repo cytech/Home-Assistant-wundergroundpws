@@ -72,6 +72,9 @@ Please consider this when using the following information.
 2. Copy the custom_components directory from the extracted file into your .homeassistant directory.  
 or  
 Copy the contents of the custom_components directory from the extracted file into an existing custom_components directory in your .homeassistant directory.
+3. Resstart Home Assistant
+
+## Create Instance
 
 1. In Home Assistant Settings, select DEVICES & SERVICES, then ADD INTEGRATION.  
 2. Select the "wundergroundpws" integration.  
