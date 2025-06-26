@@ -9,12 +9,43 @@ import logging
 from typing import Any
 
 import aiohttp
-from asyncio import timeout
+import async_timeout
+
+
+import aiofiles
+import json
+import os
+
+async def get_tran_file(self):
+    tfiledir = f'{self._hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
+    tfilename = self._lang.split('-', 1)[0]
+    try:
+        async with aiofiles.open(f'{tfiledir}{tfilename}.json', mode='r', encoding='utf-8') as f:
+            content = await f.read()
+            tfiledata = json.loads(content)  # Usa json.loads standard
+    except FileNotFoundError:
+        try:
+            async with aiofiles.open(f'{tfiledir}en.json', mode='r', encoding='utf-8') as f:
+                content = await f.read()
+                tfiledata = json.loads(content)
+            _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en.json.')
+        except Exception as e:
+            _LOGGER.error(f'Error loading default translation file en.json: {e}')
+            tfiledata = {}
+    except Exception as e:
+        _LOGGER.error(f'Error loading translation file {tfilename}.json: {e}')
+        tfiledata = {}
+
+    return tfiledata
+
+
+
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+import json
 from homeassistant.util.unit_system import METRIC_SYSTEM
 from homeassistant.const import (
     PERCENTAGE, UnitOfPressure, UnitOfTemperature, UnitOfLength, UnitOfSpeed, UnitOfVolumetricFlux)
@@ -28,7 +59,7 @@ from .const import (
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
     FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
-    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, FIELD_LONGITUDE, FIELD_LATITUDE,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, DOMAIN, FIELD_LONGITUDE, FIELD_LATITUDE,
     DEFAULT_TIMEOUT
 )
 
@@ -58,7 +89,6 @@ class WundergroundPWSUpdateCoordinatorConfig:
     longitude: str
     forecast_enable: bool
     update_interval = MIN_TIME_BETWEEN_UPDATES
-    tranfile: str
 
 
 class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
@@ -84,7 +114,9 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         self._features = set()
         self.data = None
         self._session = async_get_clientsession(self._hass)
-        self._tranfile = config.tranfile
+        self._tranfile = self.get_tran_file()
+        #self._tranfile = await self.get_tran_file()
+
 
         if self._unit_system_api == 'm':
             self.units_of_measurement = (UnitOfTemperature.CELSIUS, UnitOfLength.MILLIMETERS, UnitOfLength.METERS,
@@ -101,7 +133,10 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             name="WundergroundPWSUpdateCoordinator",
             update_interval=config.update_interval,
         )
-
+    async def async_initialize(self):
+        """Initialize async file loading."""
+        self._tranfile = await self.get_tran_file()
+   
     @property
     def is_metric(self):
         """Determine if this is the metric unit system."""
@@ -122,7 +157,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
         }
         try:
-            async with timeout(DEFAULT_TIMEOUT):
+            with async_timeout.timeout(DEFAULT_TIMEOUT):
                 url = self._build_url(_RESOURCECURRENT)
                 response = await self._session.get(url, headers=headers)
                 result_current = await response.json()
@@ -135,7 +170,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 if not self._latitude:
                     self._latitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE])
 
-            async with timeout(DEFAULT_TIMEOUT):
+            with async_timeout.timeout(DEFAULT_TIMEOUT):
                 url = self._build_url(_RESOURCEFORECAST)
                 response = await self._session.get(url, headers=headers)
                 result_forecast = await response.json()
@@ -225,6 +260,28 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         return None
 
 
+    async def get_tran_file(self):
+        """Get translation file for wupws sensor friendly_name asynchronously."""
+        tfiledir = f'{self._hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
+        tfilename = self._lang.split('-', 1)[0]
+        try:
+            async with aiofiles.open(f'{tfiledir}{tfilename}.json', mode='r', encoding='utf-8') as f:
+                content = await f.read()
+                tfiledata = json.loads(content)
+        except FileNotFoundError:
+            try:
+                async with aiofiles.open(f'{tfiledir}en.json', mode='r', encoding='utf-8') as f:
+                    content = await f.read()
+                    tfiledata = json.loads(content)
+                _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en.json.')
+            except Exception as e:
+                _LOGGER.error(f'Error loading default translation file en.json: {e}')
+                tfiledata = {}
+        except Exception as e:
+            _LOGGER.error(f'Error loading translation file {tfilename}.json: {e}')
+            tfiledata = {}
+    
+        return tfiledata
 class InvalidApiKey(HomeAssistantError):
     """Error to indicate there is an invalid api key."""
 
