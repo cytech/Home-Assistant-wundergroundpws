@@ -50,9 +50,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False)
     )
 
-    #wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
     wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
-    await wupwscoordinator.async_initialize()
+    
+    #await wupwscoordinator.async_init()
+    await wupwscoordinator.async_refresh()
 
     await wupwscoordinator.async_config_entry_first_refresh()
     if not wupwscoordinator.last_update_success:
