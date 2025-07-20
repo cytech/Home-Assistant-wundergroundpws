@@ -2,7 +2,7 @@
 from __future__ import annotations
 import logging
 from http import HTTPStatus
-from asyncio import timeout
+import async_timeout
 import voluptuous as vol
 from homeassistant import config_entries
 import homeassistant.helpers.config_validation as cv
@@ -55,7 +55,7 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_station_id"
                 raise InvalidStationId
 
-            async with timeout(DEFAULT_TIMEOUT):
+            with async_timeout.timeout(DEFAULT_TIMEOUT):
                 url = f'https://api.weather.com/v2/pws/observations/current?stationId={pws_id}&format=json&units=e' \
                       f'&apiKey={api_key}'
                 response = await session.get(url, headers=headers)
@@ -142,7 +142,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry):
         """Initialize options flow."""
-        self.config_entry = config_entry
+        #self.config_entry = config_entry
+        entry = self.hass.config_entries.async_get_entry(entry_id)
+# usa entry.options o entry.data in modo pulito
+
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
