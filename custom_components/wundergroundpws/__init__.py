@@ -1,5 +1,6 @@
 """The wundergroundpws component."""
 import logging
+import os.path
 from typing import Final
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -9,6 +10,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.util.unit_system import METRIC_SYSTEM
+from homeassistant.util import json
 from .coordinator import WundergroundPWSUpdateCoordinator, WundergroundPWSUpdateCoordinatorConfig
 from .const import (
     CONF_LANG,
@@ -47,14 +49,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         calendarday=entry.options[CONF_CALENDARDAYTEMPERATURE],
         latitude=latitude,
         longitude=longitude,
-        forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False)
+        forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False),
+        tranfile=""
     )
 
-    wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
-    
-    #await wupwscoordinator.async_init()
-    await wupwscoordinator.async_refresh()
+    """get translation file for wupws sensor friendly_name"""
+    tfiledir = f'{hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
+    tfilename = config.lang.split('-', 1)[0]
 
+    if os.path.isfile(f'{tfiledir}{tfilename}.json'):
+        config.tranfile = await hass.async_add_executor_job(json.load_json, f'{tfiledir}{tfilename}.json')
+    else:
+        config.tranfile = await hass.async_add_executor_job(json.load_json, f'{tfiledir}en.json')
+        _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en-US.')
+
+    wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
     await wupwscoordinator.async_config_entry_first_refresh()
     if not wupwscoordinator.last_update_success:
         raise ConfigEntryNotReady
