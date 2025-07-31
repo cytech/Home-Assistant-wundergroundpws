@@ -2,6 +2,11 @@
   
 
 Home Assistant custom integration for Weather Underground personal weather station users.  
+
+
+fork 
+
+
 Includes a native Home Assistant Weather Entity and a variety of weather sensors.  
 Current conditions are generated from the wundergroundpws configured station ID.  
 Forecast is generated from the latitude/longitude retrieved from the wundergroundpws configured station ID.  
