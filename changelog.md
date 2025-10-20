@@ -1,3 +1,8 @@
+v2.0.10  
+fix Deprecation for 2025.12 discussion #265 in config_flow (pr#267)  
+replace self.config_entry with self._config_entry  
+merge PR#271 to enable HACS integration.
+
 v2.0.9  
 replace removed python async_timeout.timeout with asyncio.timeout  
 addresses issues in discussion #s  [260](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/260) and [261](https://github.com/cytech/Home-Assistant-wundergroundpws/discussions/261)

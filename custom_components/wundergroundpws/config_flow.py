@@ -142,7 +142,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry):
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self._config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -154,21 +154,21 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Optional(CONF_FORECAST_SENSORS,
-                                 default=self.config_entry.options.get(CONF_FORECAST_SENSORS,
+                                 default=self._config_entry.options.get(CONF_FORECAST_SENSORS,
                                                                        DEFAULT_FORECAST_SENSORS)): bool,
-                    vol.Optional(CONF_NUMERIC_PRECISION, default=self.config_entry.options.get(CONF_NUMERIC_PRECISION,
+                    vol.Optional(CONF_NUMERIC_PRECISION, default=self._config_entry.options.get(CONF_NUMERIC_PRECISION,
                                  DEFAULT_NUMERIC_PRECISION)): vol.All(vol.In(['none', 'decimal'])),
-                    vol.Optional(CONF_LANG, default=self.config_entry.options.get(CONF_LANG, DEFAULT_LANG)):
+                    vol.Optional(CONF_LANG, default=self._config_entry.options.get(CONF_LANG, DEFAULT_LANG)):
                         vol.All(vol.In(LANG_CODES)),
                     vol.Optional(CONF_CALENDARDAYTEMPERATURE,
-                                 default=self.config_entry.options.get(CONF_CALENDARDAYTEMPERATURE,
+                                 default=self._config_entry.options.get(CONF_CALENDARDAYTEMPERATURE,
                                                                        DEFAULT_CALENDARDAYTEMPERATURE)): bool,
                     vol.Inclusive(CONF_LATITUDE, 'coordinates',
                                   'Latitude and longitude must exist together',
-                                  default=self.config_entry.options.get(CONF_LATITUDE)): cv.latitude,
+                                  default=self._config_entry.options.get(CONF_LATITUDE)): cv.latitude,
                     vol.Inclusive(CONF_LONGITUDE, 'coordinates',
                                   'Latitude and longitude must exist together',
-                                  default=self.config_entry.options.get(CONF_LONGITUDE)): cv.longitude,
+                                  default=self._config_entry.options.get(CONF_LONGITUDE)): cv.longitude,
 
                 }
             ),
