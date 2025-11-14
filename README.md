@@ -62,9 +62,18 @@ Please consider this when using the following information.
 
 ## Install using HACS
 
-1. The installation is done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store). If you don't have HACS, you must install it before adding this integration. [Installation instructions here.](https://hacs.xyz/docs/setup/download)
-2. Once HACS is installed, navigate to the 'Integrations' tab in HACS and search for the 'Wundergroundpws' integration there. Click "Download this repository in HACS". On the next screen, select "Download". Once fully downloaded, restart Home Assistant.
+The installation is done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store).  
+If you don't have HACS, you must install it before adding this integration.  
+[Installation instructions here.](https://hacs.xyz/docs/setup/download)
 
+Once HACS is installed, follow these steps:
+1. Open HACS within HomeAssistant
+2. Within HACS, select the 3-dot button (top right) and then Custom repositories from the menu
+3. In the dialog that appears, enter the following:
+   - Repository: `cytech/Home-Assistant-wundergroundpws`
+   - Category: `Integration`
+4. Click Add
+5. Now in the Search tab of HACS, search for "wundergroundpws"
 
 ## Manual Install
 

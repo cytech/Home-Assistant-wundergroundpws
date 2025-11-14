@@ -60,10 +60,25 @@ Please consider this when using the following information.
 
 # Installation
 
-Download the latest v2.X.X release zip file from this repository.
-Extract the zip file to a temporary directory.
--------
-Copy the custom_components directory from the extracted file into your .homeassistant directory.  
+## Install using HACS
+
+The installation is done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store).  
+If you don't have HACS, you must install it before adding this integration.  
+[Installation instructions here.](https://hacs.xyz/docs/setup/download)
+
+Once HACS is installed, follow these steps:
+1. Open HACS within HomeAssistant
+2. Within HACS, select the 3-dot button (top right) and then Custom repositories from the menu
+3. In the dialog that appears, enter the following:
+   - Repository: `cytech/Home-Assistant-wundergroundpws`
+   - Category: `Integration`
+4. Click Add
+5. Now in the Search tab of HACS, search for "wundergroundpws"
+
+## Manual Install
+
+1. Download the latest [v2.X.X release](https://github.com/cytech/Home-Assistant-wundergroundpws/releases) zip file from the repository and extract the zip file to a temporary directory.
+2. Copy the custom_components directory from the extracted file into your .homeassistant directory.  
 or  
 Copy the contents of the custom_components directory from the extracted file into an existing custom_components directory in your .homeassistant directory.
 

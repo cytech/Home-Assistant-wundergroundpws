@@ -1,3 +1,6 @@
+v2.0.10
+update README.md for HACS installation
+
 v2.0.10  
 fix Deprecation for 2025.12 discussion #265 in config_flow (pr#267)  
 replace self.config_entry with self._config_entry  
