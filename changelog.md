@@ -1,4 +1,7 @@
-v2.0.10
+v2.0.11  
+merge PR#293 - Fix unit of measurement handling for text sensors  
+
+v2.0.10  
 update README.md for HACS installation
 
 v2.0.10  
