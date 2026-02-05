@@ -1,3 +1,7 @@
+v2.1.0  
+update sensor.py and hardcode "sensor.{}" over entity_id_format.  
+hass core 2026.2 changed generate_entity_id helper.
+
 v2.0.11  
 merge PR#293 - Fix unit of measurement handling for text sensors  
 

@@ -89,12 +89,12 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
                 )
                 if forecast_day in range(0, MAX_FORECAST_DAYS * 2, 2):  # [0, 2, 4, 6, 8]  days
                     self.entity_id = generate_entity_id(
-                        entity_id_format, f"{self.coordinator.pws_id}_{description.name}_{forecast_day}d",
+                        "sensor.{}", f"{self.coordinator.pws_id}_{description.name}_{forecast_day}d",
                         hass=coordinator.hass
                     )
                 else:  # nights
                     self.entity_id = generate_entity_id(
-                        entity_id_format, f"{self.coordinator.pws_id}_{description.name}_{forecast_day}n",
+                        "sensor.{}", f"{self.coordinator.pws_id}_{description.name}_{forecast_day}n",
                         hass=coordinator.hass
                     )
             else:  # forecast outside daypart
@@ -102,14 +102,14 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
                     f"{self.coordinator.pws_id},{description.key}_{forecast_day}f".lower()
                 )
                 self.entity_id = generate_entity_id(
-                    entity_id_format, f"{self.coordinator.pws_id}_{description.name}_{forecast_day}",
+                    "sensor.{}", f"{self.coordinator.pws_id}_{description.name}_{forecast_day}",
                     hass=coordinator.hass
                 )
             self.forecast_day = forecast_day
         else:
             self._attr_unique_id = f"{self.coordinator.pws_id},{description.key}".lower()
             self.entity_id = generate_entity_id(
-                entity_id_format, f"{self.coordinator.pws_id}_{description.name}", hass=coordinator.hass
+                "sensor.{}", f"{self.coordinator.pws_id}_{description.name}", hass=coordinator.hass
             )
             self.forecast_day = None
         self._unit_system = coordinator.unit_system
