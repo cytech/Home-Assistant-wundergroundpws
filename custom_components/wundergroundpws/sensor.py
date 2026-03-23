@@ -10,7 +10,8 @@ import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import generate_entity_id, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util.unit_system import METRIC_SYSTEM
@@ -20,7 +21,7 @@ from .coordinator import WundergroundPWSUpdateCoordinator
 from .const import (
     CONF_ATTRIBUTION, DOMAIN, FIELD_DAYPART, FIELD_OBSERVATIONS, MAX_FORECAST_DAYS,
     FEATURE_CONDITIONS, FEATURE_FORECAST, FEATURE_FORECAST_DAYPART, FIELD_FORECAST_DAYPARTNAME,
-    FIELD_FORECAST_DAYOFWEEK, FIELD_FORECAST_EXPIRED
+    FIELD_FORECAST_DAYOFWEEK, FIELD_FORECAST_EXPIRED, MANUFACTURER
 )
 from .wupws_obs_sensors import *
 from .wupws_forecast_sensors import *
@@ -121,6 +122,16 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
             if unit is not None:
                 self._attr_native_unit_of_measurement = unit
         # Note: For text sensors (like narrative/summary), we don't set native_unit_of_measurement at all
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.pws_id)},
+            name=self.coordinator.pws_id,
+            manufacturer=MANUFACTURER,
+            entry_type=DeviceEntryType.SERVICE,
+        )
 
     @property
     def available(self) -> bool:

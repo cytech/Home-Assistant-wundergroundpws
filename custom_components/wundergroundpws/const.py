@@ -24,8 +24,8 @@ from homeassistant.components.weather import (
 )
 
 DOMAIN = 'wundergroundpws'
-# MANUFACTURER = 'WeatherUnderground'
-# NAME = 'WeatherUnderground'
+MANUFACTURER = 'WeatherUnderground'
+NAME = 'WeatherUnderground'
 CONF_ATTRIBUTION = 'Data provided by the WUnderground weather service'
 CONF_PWS_ID = 'pws_id'
 CONF_NUMERIC_PRECISION = 'numeric_precision'

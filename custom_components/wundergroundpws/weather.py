@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 from .const import (
     DOMAIN,
-
+    MANUFACTURER,
     TEMPUNIT,
     LENGTHUNIT,
     SPEEDUNIT,
@@ -52,7 +52,8 @@ from homeassistant.components.weather import (
 )
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import generate_entity_id, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,6 +84,16 @@ class WUWeather(CoordinatorEntity, WeatherEntity):
             ENTITY_ID_FORMAT, f"{self._attr_name}", hass=coordinator.hass
         )
         self._attr_unique_id = f"{coordinator.pws_id},{WEATHER_DOMAIN}".lower()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.pws_id)},
+            name=self.coordinator.pws_id,
+            manufacturer=MANUFACTURER,
+            entry_type=DeviceEntryType.SERVICE,
+        )
 
     @property
     def supported_features(self) -> int | None:
