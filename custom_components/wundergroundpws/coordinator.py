@@ -193,6 +193,9 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         self._features.add(feature)
 
     def get_condition(self, field):
+        if not self.data:
+            return None
+
         if field in [
             FIELD_CONDITION_HUMIDITY,
             FIELD_CONDITION_WINDDIR,
@@ -202,6 +205,9 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         return self.data[FIELD_OBSERVATIONS][0][self.unit_system][field]
 
     def get_forecast(self, field, period=0):
+        if not self.data:
+            return None
+
         try:
             if field in [
                 FIELD_FORECAST_TEMPERATUREMAX,
@@ -212,8 +218,12 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             ]:
                 # Those fields exist per-day, rather than per dayPart, so the period is halved
                 return self.data[field][int(period / 2)]
+
+            if FIELD_DAYPART not in self.data:
+                return None
+
             return self.data[FIELD_DAYPART][0][field][period]
-        except IndexError:
+        except (KeyError, TypeError, IndexError):
             return None
 
     @classmethod

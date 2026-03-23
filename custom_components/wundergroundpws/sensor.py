@@ -174,16 +174,26 @@ def _get_sensor_data(
         forecast_day: int | None = None
 ) -> Any:
     """Get sensor data."""
-    if feature == FEATURE_CONDITIONS:
-        return sensors[FIELD_OBSERVATIONS][0][unit_system][kind]
-    elif feature == FEATURE_FORECAST:
-        return sensors[kind][forecast_day]
-    elif feature == FEATURE_FORECAST_DAYPART:
-        return sensors[FIELD_DAYPART][0][kind][forecast_day]
-    elif feature == FEATURE_OBSERVATIONS:
-        return sensors[FIELD_OBSERVATIONS][0][kind]
-    else:
-        return sensors
+    # NEU: Null-Check am Anfang
+    if sensors is None:
+        _LOGGER.debug("Sensor data is None, returning None")
+        return None
+
+    try:
+        if feature == FEATURE_CONDITIONS:
+            return sensors[FIELD_OBSERVATIONS][0][unit_system][kind]
+        elif feature == FEATURE_FORECAST:
+            return sensors[kind][forecast_day]
+        elif feature == FEATURE_FORECAST_DAYPART:
+            return sensors[FIELD_DAYPART][0][kind][forecast_day]
+        elif feature == FEATURE_OBSERVATIONS:
+            return sensors[FIELD_OBSERVATIONS][0][kind]
+        else:
+            return sensors
+    except (KeyError, TypeError, IndexError) as e:
+        # NEU: Exception-Handling
+        _LOGGER.debug(f"Error getting sensor data for {kind} (feature={feature}): {e}")
+        return None
 
 
 class WundergroundPWSForecastSensor(WundergroundPWSSensor):
