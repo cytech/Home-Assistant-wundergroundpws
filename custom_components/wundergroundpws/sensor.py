@@ -133,6 +133,8 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
         if self.entity_description.key in self.coordinator._tranfile.keys() or \
                 self.entity_description.key in self.coordinator._tranfile[FIELD_DAYPART].keys():
             if self.forecast_day is not None:
+                if self.coordinator.data is None:
+                    return self.entity_description.name
                 if self.entity_description.feature == FEATURE_FORECAST_DAYPART:
                     if self.coordinator.data[FIELD_DAYPART][0][FIELD_FORECAST_DAYPARTNAME][self.forecast_day] is not None:
                         return self.coordinator._tranfile[FIELD_DAYPART][self.entity_description.key] + " " + \
