@@ -2,43 +2,53 @@
 
 from __future__ import annotations
 
-import asyncio
+from asyncio import timeout
 from dataclasses import dataclass
 from datetime import timedelta
 import logging
 from typing import Any
 
 import aiohttp
-from asyncio import timeout
 
+from homeassistant.const import (
+    PERCENTAGE,
+    UnitOfLength,
+    UnitOfPressure,
+    UnitOfSpeed,
+    UnitOfTemperature,
+    UnitOfVolumetricFlux,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util.unit_system import METRIC_SYSTEM
-from homeassistant.const import (
-    PERCENTAGE, UnitOfPressure, UnitOfTemperature, UnitOfLength, UnitOfSpeed, UnitOfVolumetricFlux)
+
 from .const import (
-    ICON_CONDITION_MAP,
-    FIELD_OBSERVATIONS,
+    DEFAULT_TIMEOUT,
     FIELD_CONDITION_HUMIDITY,
     FIELD_CONDITION_WINDDIR,
     FIELD_DAYPART,
-    FIELD_FORECAST_VALIDTIMEUTC,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
+    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN,
     FIELD_FORECAST_TEMPERATUREMAX,
     FIELD_FORECAST_TEMPERATUREMIN,
-    FIELD_FORECAST_CALENDARDAYTEMPERATUREMAX,
-    FIELD_FORECAST_CALENDARDAYTEMPERATUREMIN, FIELD_LONGITUDE, FIELD_LATITUDE,
-    DEFAULT_TIMEOUT
+    FIELD_FORECAST_VALIDTIMEUTC,
+    FIELD_LATITUDE,
+    FIELD_LONGITUDE,
+    FIELD_OBSERVATIONS,
+    ICON_CONDITION_MAP,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-_RESOURCESHARED = '&format=json&apiKey={apiKey}&units={units}'
-_RESOURCECURRENT = ('https://api.weather.com/v2/pws/observations/current'
-                    '?stationId={stationId}')
-_RESOURCEFORECAST = ('https://api.weather.com/v3/wx/forecast/daily/5day'
-                     '?geocode={latitude},{longitude}')
+_RESOURCESHARED = "&format=json&apiKey={apiKey}&units={units}"
+_RESOURCECURRENT = (
+    "https://api.weather.com/v2/pws/observations/current?stationId={stationId}"
+)
+_RESOURCEFORECAST = (
+    "https://api.weather.com/v3/wx/forecast/daily/5day?geocode={latitude},{longitude}"
+)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
@@ -67,7 +77,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
     icon_condition_map = ICON_CONDITION_MAP
 
     def __init__(
-            self, hass: HomeAssistant, config: WundergroundPWSUpdateCoordinatorConfig
+        self, hass: HomeAssistant, config: WundergroundPWSUpdateCoordinatorConfig
     ) -> None:
         """Initialize."""
         self._hass = hass
@@ -86,14 +96,26 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         self._session = async_get_clientsession(self._hass)
         self._tranfile = config.tranfile
 
-        if self._unit_system_api == 'm':
-            self.units_of_measurement = (UnitOfTemperature.CELSIUS, UnitOfLength.MILLIMETERS, UnitOfLength.METERS,
-                                         UnitOfSpeed.KILOMETERS_PER_HOUR, UnitOfPressure.MBAR,
-                                         UnitOfVolumetricFlux.MILLIMETERS_PER_HOUR, PERCENTAGE)
+        if self._unit_system_api == "m":
+            self.units_of_measurement = (
+                UnitOfTemperature.CELSIUS,
+                UnitOfLength.MILLIMETERS,
+                UnitOfLength.METERS,
+                UnitOfSpeed.KILOMETERS_PER_HOUR,
+                UnitOfPressure.MBAR,
+                UnitOfVolumetricFlux.MILLIMETERS_PER_HOUR,
+                PERCENTAGE,
+            )
         else:
-            self.units_of_measurement = (UnitOfTemperature.FAHRENHEIT, UnitOfLength.INCHES, UnitOfLength.FEET,
-                                         UnitOfSpeed.MILES_PER_HOUR, UnitOfPressure.INHG,
-                                         UnitOfVolumetricFlux.INCHES_PER_HOUR, PERCENTAGE)
+            self.units_of_measurement = (
+                UnitOfTemperature.FAHRENHEIT,
+                UnitOfLength.INCHES,
+                UnitOfLength.FEET,
+                UnitOfSpeed.MILES_PER_HOUR,
+                UnitOfPressure.INHG,
+                UnitOfVolumetricFlux.INCHES_PER_HOUR,
+                PERCENTAGE,
+            )
 
         super().__init__(
             hass,
@@ -118,8 +140,8 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
     async def get_weather(self):
         """Get weather data."""
         headers = {
-            'Accept-Encoding': 'gzip',
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+            "Accept-Encoding": "gzip",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
         }
         try:
             async with timeout(DEFAULT_TIMEOUT):
@@ -127,13 +149,18 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 response = await self._session.get(url, headers=headers)
                 result_current = await response.json()
                 if result_current is None:
-                    raise ValueError('NO CURRENT RESULT')
+                    _LOGGER.error("Check WUnderground API NO CURRENT RESULT")
+                    return None
                 self._check_errors(url, result_current)
 
                 if not self._longitude:
-                    self._longitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LONGITUDE])
+                    self._longitude = result_current[FIELD_OBSERVATIONS][0][
+                        FIELD_LONGITUDE
+                    ]
                 if not self._latitude:
-                    self._latitude = (result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE])
+                    self._latitude = result_current[FIELD_OBSERVATIONS][0][
+                        FIELD_LATITUDE
+                    ]
 
             async with timeout(DEFAULT_TIMEOUT):
                 url = self._build_url(_RESOURCEFORECAST)
@@ -141,27 +168,28 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 result_forecast = await response.json()
 
                 if result_forecast is None:
-                    raise ValueError('NO FORECAST RESULT')
+                    _LOGGER.error("Check WUnderground API NO FORECAST RESULT")
+                    return None
                 self._check_errors(url, result_forecast)
 
             result = {**result_current, **result_forecast}
 
             self.data = result
 
-            return result
-
-        except ValueError as err:
-            _LOGGER.error("Check WUnderground API %s", err.args)
-        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+        except (TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error fetching WUnderground data: %s", repr(err))
+            return None
+        else:
+            return result
         # _LOGGER.debug(f'WUnderground data {self.data}')
 
     def _build_url(self, baseurl):
+        """Build a URL for API requests with appropriate parameters."""
         if baseurl == _RESOURCECURRENT:
-            if self._numeric_precision != 'none':
-                baseurl += '&numericPrecision={numericPrecision}'
+            if self._numeric_precision != "none":
+                baseurl += "&numericPrecision={numericPrecision}"
         elif baseurl == _RESOURCEFORECAST:
-            baseurl += '&language={language}'
+            baseurl += "&language={language}"
 
         baseurl += _RESOURCESHARED
 
@@ -172,27 +200,27 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             longitude=self._longitude,
             numericPrecision=self._numeric_precision,
             stationId=self._pws_id,
-            units=self._unit_system_api
+            units=self._unit_system_api,
         )
 
     def _check_errors(self, url: str, response: dict):
+        """Check for errors in the API response and raise if found."""
         # _LOGGER.debug(f'Checking errors from {url} in {response}')
-        if 'errors' not in response:
+        if "errors" not in response:
             return
-        if errors := response['errors']:
+        if errors := response["errors"]:
             raise ValueError(
-                f'Error from {url}: '
-                '; '.join([
-                    e['message']
-                    for e in errors
-                ])
+                f"Error from {url}: ; ".join([e["message"] for e in errors])
             )
 
     def request_feature(self, feature):
-        """Register feature to be fetched from WU API."""
+        """Register a feature to be fetched from the WU API."""
         self._features.add(feature)
 
     def get_condition(self, field):
+        """Get a condition field from current observations."""
+        if not self.data:
+            return None
         if field in [
             FIELD_CONDITION_HUMIDITY,
             FIELD_CONDITION_WINDDIR,
@@ -202,6 +230,9 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         return self.data[FIELD_OBSERVATIONS][0][self.unit_system][field]
 
     def get_forecast(self, field, period=0):
+        """Get a forecast field for a specific period."""
+        if not self.data:
+            return None
         try:
             if field in [
                 FIELD_FORECAST_TEMPERATUREMAX,
@@ -212,8 +243,12 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             ]:
                 # Those fields exist per-day, rather than per dayPart, so the period is halved
                 return self.data[field][int(period / 2)]
+
+            if FIELD_DAYPART not in self.data:
+                return None
+
             return self.data[FIELD_DAYPART][0][field][period]
-        except IndexError:
+        except KeyError, TypeError, IndexError:
             return None
 
     @classmethod
@@ -221,7 +256,10 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         for condition, iconcodes in cls.icon_condition_map.items():
             if icon_code in iconcodes:
                 return condition
-        _LOGGER.warning(f'Unmapped iconCode from TWC Api. (44 is Not Available (N/A)) "{icon_code}". ')
+        _LOGGER.warning(
+            'Unmapped iconCode from TWC Api. (44 is Not Available (N/A)) "%s"',
+            icon_code,
+        )
         return None
 
 

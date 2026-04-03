@@ -5,7 +5,7 @@
         "data": {
           "api_key": "[%key:common::config_flow::data::api_key%]",
           "name": "Name of the integration",
-          "pws_id": "Personal Weather Station ID (Case Sensitive)"
+          "pws_id": "Station ID (Case Sensitive ID, NOT Station Key)"
         },
         "description": "Set up WundergroundPWS integration. To generate API key go to https://www.wunderground.com/member/api-keys",
         "title": "WundergroundPWS"
@@ -13,7 +13,7 @@
     },
     "error": {
       "invalid_api_key": "[%key:common::config_flow::error::invalid_api_key%]",
-      "invalid_station_id": "Invalid Station ID",
+      "invalid_station_id": "Invalid Station ID (Use Station ID, NOT Station Key)",
       "unknown_error": "Unknown Error"
     }
   },
@@ -21,6 +21,8 @@
     "step": {
       "init": {
         "data": {
+          "api_key": "WundergroundPWS personal weather station API key",
+          "pws_id": "Station ID (Case Sensitive ID, NOT Station Key)",
           "forecast_sensors": "Create Forecast Sensors ?",
           "numeric_precision": "Numeric Precision",
           "lang": "Language",

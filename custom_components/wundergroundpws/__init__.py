@@ -1,26 +1,34 @@
 """The wundergroundpws component."""
+
 import logging
-import os.path
+from pathlib import Path
 from typing import Final
+
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_API_KEY,
-    CONF_LATITUDE, CONF_LONGITUDE, Platform
-)
+from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.util import json as json_util
 from homeassistant.util.unit_system import METRIC_SYSTEM
-from homeassistant.util import json
-from .coordinator import WundergroundPWSUpdateCoordinator, WundergroundPWSUpdateCoordinatorConfig
+
 from .const import (
+    API_IMPERIAL,
+    API_METRIC,
+    API_URL_IMPERIAL,
+    API_URL_METRIC,
+    CONF_CALENDARDAYTEMPERATURE,
+    CONF_FORECAST_SENSORS,
     CONF_LANG,
     CONF_NUMERIC_PRECISION,
     CONF_PWS_ID,
-    DOMAIN, API_METRIC, API_IMPERIAL, API_URL_METRIC, API_URL_IMPERIAL, CONF_CALENDARDAYTEMPERATURE,
-    CONF_FORECAST_SENSORS
+    DOMAIN,
+)
+from .coordinator import (
+    WundergroundPWSUpdateCoordinator,
+    WundergroundPWSUpdateCoordinatorConfig,
 )
 
-PLATFORMS: Final = [Platform.WEATHER, Platform.SENSOR]
+PLATFORMS: Final = [Platform.SENSOR, Platform.WEATHER]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,18 +58,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         latitude=latitude,
         longitude=longitude,
         forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False),
-        tranfile=""
+        tranfile="",
     )
 
-    """get translation file for wupws sensor friendly_name"""
-    tfiledir = f'{hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/'
-    tfilename = config.lang.split('-', 1)[0]
+    # get translation file for wupws sensor friendly_name
+    tfiledir = Path(
+        f"{hass.config.config_dir}/custom_components/{DOMAIN}/wupws_translations/"
+    )
+    tfilename = config.lang.split("-", 1)[0]
 
-    if os.path.isfile(f'{tfiledir}{tfilename}.json'):
-        config.tranfile = await hass.async_add_executor_job(json.load_json, f'{tfiledir}{tfilename}.json')
+    translation_file = tfiledir / f"{tfilename}.json"
+    if translation_file.is_file():
+        config.tranfile = await hass.async_add_executor_job(
+            json_util.load_json, str(translation_file)
+        )
     else:
-        config.tranfile = await hass.async_add_executor_job(json.load_json, f'{tfiledir}en.json')
-        _LOGGER.warning(f'Sensor translation file {tfilename}.json does not exist. Defaulting to en-US.')
+        config.tranfile = await hass.async_add_executor_job(
+            json_util.load_json, str(tfiledir / "en.json")
+        )
+        _LOGGER.warning(
+            "Sensor translation file %s.json does not exist. Defaulting to en-US",
+            tfilename,
+        )
 
     wupwscoordinator = WundergroundPWSUpdateCoordinator(hass, config)
     await wupwscoordinator.async_config_entry_first_refresh()
