@@ -248,7 +248,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 return None
 
             return self.data[FIELD_DAYPART][0][field][period]
-        except KeyError, TypeError, IndexError:
+        except (KeyError, TypeError, IndexError):
             return None
 
     @classmethod
