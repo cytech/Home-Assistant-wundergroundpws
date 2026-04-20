@@ -144,14 +144,15 @@ class WundergroundPWSSensor(CoordinatorEntity, SensorEntity):
             description.feature,
             forecast_day,
         )
-        # Only set unit of measurement if the sensor has a unit (avoid setting empty string for text sensors)
-        if self._sensor_data is not None:
-            unit = self.entity_description.unit_fn(
-                self.coordinator.hass.config.units is METRIC_SYSTEM
-            )
-            if unit is not None:
-                self._attr_native_unit_of_measurement = unit
-        # Note: For text sensors (like narrative/summary), we don't set native_unit_of_measurement at all
+        # Set unit based on sensor description, not data availability. The unit is a
+        # static property of the sensor type. Text sensors (narrative, summary, etc.)
+        # already return None from unit_fn, so the check below is sufficient to avoid
+        # setting a unit on those.
+        unit = self.entity_description.unit_fn(
+            self.coordinator.hass.config.units is METRIC_SYSTEM
+        )
+        if unit is not None:
+            self._attr_native_unit_of_measurement = unit
 
     @property
     def device_info(self) -> DeviceInfo:
