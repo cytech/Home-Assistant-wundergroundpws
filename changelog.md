@@ -1,3 +1,7 @@
+v2.2.1
+Apply PR #315 Set unit based on sensor description, independent of response data.  
+move exception handling to .exceptions.py
+
 v2.2.0
 clean and format for vscode.
 proper fix variable for sensor.py and hardcode "sensor.{}" to entity_id_format.

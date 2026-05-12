@@ -7,6 +7,7 @@ from http import HTTPStatus
 import logging
 
 import voluptuous as vol
+from .exceptions import InvalidApiKeyError, InvalidStationIdError, InvalidApiResponseError
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
@@ -31,17 +32,11 @@ from .const import (
     FIELD_OBSERVATIONS,
     LANG_CODES,
 )
-from .coordinator import InvalidApiKey, InvalidStationId
-
-
-class InvalidApiResponse(Exception):
-    """Raised when API response is invalid."""
-
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a WundergrounPWS config flow."""
 
     VERSION = 1
@@ -59,15 +54,15 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             Dictionary with response data if successful, empty dict on error.
 
         Raises:
-            InvalidApiKey: If API key is invalid or missing.
-            InvalidStationId: If station ID is invalid or missing.
+            InvalidApiKeyError: If API key is invalid or missing.
+            InvalidStationIdError: If station ID is invalid or missing.
             Exception: For other unexpected errors.
         """
         if user_input[CONF_API_KEY] is None or user_input[CONF_API_KEY] == "":
-            raise InvalidApiKey
+            raise InvalidApiKeyError
 
         if user_input[CONF_PWS_ID] is None or user_input[CONF_PWS_ID] == "":
-            raise InvalidStationId
+            raise InvalidStationIdError
 
         session = async_create_clientsession(self.hass)
         pws_id = user_input[CONF_PWS_ID]
@@ -91,20 +86,20 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     response.status,
                     response.reason,
                 )
-                raise InvalidApiKey
+                raise InvalidApiKeyError
             if response.status == HTTPStatus.NO_CONTENT:
                 _LOGGER.error(
                     "WundergroundPWS config responded with HTTP error %s: %s",
                     response.status,
                     response.reason,
                 )
-                raise InvalidStationId
+                raise InvalidStationIdError
             _LOGGER.error(
                 "WundergroundPWS config responded with HTTP error %s: %s",
                 response.status,
                 response.reason,
             )
-            raise InvalidApiResponse
+            raise InvalidApiResponseError
 
         return await response.json()
 
@@ -115,11 +110,11 @@ class WundergrounPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         try:
             result_current = await self._validate_user_input(user_input)
-        except InvalidApiKey:
+        except InvalidApiKeyError:
             return await self._show_setup_form(errors={"base": "invalid_api_key"})
-        except InvalidStationId:
+        except InvalidStationIdError:
             return await self._show_setup_form(errors={"base": "invalid_station_id"})
-        except InvalidApiResponse:
+        except InvalidApiResponseError:
             return await self._show_setup_form(errors={"base": "unknown_error"})
 
         station_id = result_current[FIELD_OBSERVATIONS][0]["stationID"]

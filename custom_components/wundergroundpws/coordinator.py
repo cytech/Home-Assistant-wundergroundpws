@@ -19,7 +19,6 @@ from homeassistant.const import (
     UnitOfVolumetricFlux,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util.unit_system import METRIC_SYSTEM
@@ -134,7 +133,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         """Return the location used for data."""
         return self._pws_id
 
-    async def _async_update_data(self) -> dict[str, Any]:
+    async def _async_update_data(self) -> dict[Any, Any] | None:
         return await self.get_weather()
 
     async def get_weather(self):
@@ -248,7 +247,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 return None
 
             return self.data[FIELD_DAYPART][0][field][period]
-        except KeyError, TypeError, IndexError:
+        except (KeyError, TypeError, IndexError):
             return None
 
     @classmethod
@@ -261,11 +260,3 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             icon_code,
         )
         return None
-
-
-class InvalidApiKey(HomeAssistantError):
-    """Error to indicate there is an invalid api key."""
-
-
-class InvalidStationId(HomeAssistantError):
-    """Error to indicate there is an invalid api key."""
