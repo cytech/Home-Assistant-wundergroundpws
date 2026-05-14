@@ -1,7 +1,5 @@
 """The WundergroundPWS data coordinator."""
 
-from __future__ import annotations
-
 from asyncio import timeout
 from dataclasses import dataclass
 from datetime import timedelta
@@ -9,6 +7,8 @@ import logging
 from typing import Any
 
 import aiohttp
+from aiohttp import ClientResponseError
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from homeassistant.const import (
     PERCENTAGE,
@@ -20,7 +20,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.unit_system import METRIC_SYSTEM
 
 from .const import (
@@ -148,7 +148,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 response = await self._session.get(url, headers=headers)
                 result_current = await response.json()
                 if result_current is None:
-                    _LOGGER.error("Check WUnderground API NO CURRENT RESULT")
+                    _LOGGER.error("Check WUnderground API - NO CURRENT RESULT RETURNED FROM API")
                     return None
                 self._check_errors(url, result_current)
 
@@ -175,6 +175,10 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
 
             self.data = result
 
+        except ClientResponseError as err:
+            if err.status == 401:
+                raise ConfigEntryAuthFailed(err) from err
+            raise UpdateFailed(f"Update failed: {err}") from err
         except (TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error fetching WUnderground data: %s", repr(err))
             return None

@@ -4,8 +4,6 @@ For more details about this platform, please refer to the documentation at
 https://github.com/cytech/Home-Assistant-wundergroundpws/tree/v2.X.X
 """
 
-from __future__ import annotations
-
 import logging
 from typing import Any
 

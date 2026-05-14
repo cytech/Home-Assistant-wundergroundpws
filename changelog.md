@@ -1,12 +1,12 @@
-v2.2.1
+v2.3.0  
+Implement reauth in config flow for expired API key.  
 Apply PR #315 Set unit based on sensor description, independent of response data.  
-move exception handling to .exceptions.py
 
-v2.2.0
-clean and format for vscode.
-proper fix variable for sensor.py and hardcode "sensor.{}" to entity_id_format.
-Apply PR #305 , #306 Fix/none type error
-Apply PR # 307 Group entities into a device using PWS ID
+v2.2.0  
+clean and format for vscode.  
+proper fix variable for sensor.py and hardcode "sensor.{}" to entity_id_format.  
+Apply PR #305 , #306 Fix/none type error.  
+Apply PR # 307 Group entities into a device using PWS ID.  
 
 v2.1.0  
 update sensor.py and hardcode "sensor.{}" over entity_id_format.  

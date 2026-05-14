@@ -1,7 +1,5 @@
 """wundergroundpws forecast sensors descriptions."""
 
-from __future__ import annotations
-
 from typing import cast
 
 from homeassistant.components.sensor import SensorDeviceClass

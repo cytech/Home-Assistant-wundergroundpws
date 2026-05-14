@@ -1,12 +1,14 @@
 """Config Flow to configure WundergrounPWS Integration."""
 
-from __future__ import annotations
-
 from asyncio import timeout
+from collections.abc import Mapping
 from http import HTTPStatus
 import logging
+from typing import Any
 
 import voluptuous as vol
+
+from homeassistant.config_entries import ConfigFlowResult
 from .exceptions import InvalidApiKeyError, InvalidStationIdError, InvalidApiResponseError
 
 from homeassistant import config_entries
@@ -41,6 +43,45 @@ class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self):
+        self._entry_data = None
+
+    async def async_step_reauth(
+            self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        self._entry_data = entry_data
+        """Handle a flow for reauth."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+            self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle a flow initiated by reauthentication."""
+        errors = {}
+
+        if user_input is not None:
+            # Update the existing entry and abort
+            existing_entry = self._get_reauth_entry()
+            return self.async_update_reload_and_abort(
+                existing_entry,
+                data={
+                    CONF_API_KEY: user_input[CONF_API_KEY],
+                    CONF_PWS_ID: user_input[CONF_PWS_ID]
+                },
+                reason="reauth_successful",
+            )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_API_KEY, default=self._entry_data.get('api_key')): str,
+                    vol.Required(CONF_PWS_ID, default=self._entry_data.get('pws_id')): str,
+                }
+            ),
+            errors=errors or {},
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
@@ -59,10 +100,10 @@ class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             Exception: For other unexpected errors.
         """
         if user_input[CONF_API_KEY] is None or user_input[CONF_API_KEY] == "":
-            raise InvalidApiKeyError
+            raise InvalidApiKeyError("Invalid API key")
 
         if user_input[CONF_PWS_ID] is None or user_input[CONF_PWS_ID] == "":
-            raise InvalidStationIdError
+            raise InvalidStationIdError("Invalid Station ID")
 
         session = async_create_clientsession(self.hass)
         pws_id = user_input[CONF_PWS_ID]
@@ -86,62 +127,62 @@ class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     response.status,
                     response.reason,
                 )
-                raise InvalidApiKeyError
+                raise InvalidApiKeyError("Invalid API key")
             if response.status == HTTPStatus.NO_CONTENT:
                 _LOGGER.error(
                     "WundergroundPWS config responded with HTTP error %s: %s",
                     response.status,
                     response.reason,
                 )
-                raise InvalidStationIdError
+                raise InvalidStationIdError("Invalid Station ID")
             _LOGGER.error(
                 "WundergroundPWS config responded with HTTP error %s: %s",
                 response.status,
                 response.reason,
             )
-            raise InvalidApiResponseError
+            raise InvalidApiResponseError("Unknown API Error")
 
         return await response.json()
 
     async def async_step_user(self, user_input=None):
         """Handle a flow initiated by the user."""
-        if user_input is None:
-            return await self._show_setup_form(user_input)
+        if user_input is not None:
+            try:
+                result_current = await self._validate_user_input(user_input)
+            except InvalidApiKeyError:
+                return await self._show_setup_form(errors={"base": "invalid_api_key"})
+            except InvalidStationIdError:
+                return await self._show_setup_form(errors={"base": "invalid_station_id"})
+            except InvalidApiResponseError:
+                return await self._show_setup_form(errors={"base": "unknown_error"})
 
-        try:
-            result_current = await self._validate_user_input(user_input)
-        except InvalidApiKeyError:
-            return await self._show_setup_form(errors={"base": "invalid_api_key"})
-        except InvalidStationIdError:
-            return await self._show_setup_form(errors={"base": "invalid_station_id"})
-        except InvalidApiResponseError:
-            return await self._show_setup_form(errors={"base": "unknown_error"})
+            station_id = result_current[FIELD_OBSERVATIONS][0]["stationID"]
 
-        station_id = result_current[FIELD_OBSERVATIONS][0]["stationID"]
+            unique_id = str(f"{DOMAIN}-{station_id}")
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
 
-        unique_id = str(f"{DOMAIN}-{station_id}")
-        await self.async_set_unique_id(unique_id)
-        self._abort_if_unique_id_configured()
+            # Extract latitude and longitude from the API response, overwriting hass defaults if available
+            longitude = result_current[FIELD_OBSERVATIONS][0][FIELD_LONGITUDE]
+            latitude = result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE]
 
-        # Extract latitude and longitude from the API response, overwriting hass defaults if available
-        longitude = result_current[FIELD_OBSERVATIONS][0][FIELD_LONGITUDE]
-        latitude = result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE]
+            return self.async_create_entry(
+                title=station_id,
+                data={
+                    CONF_API_KEY: user_input[CONF_API_KEY],
+                    CONF_PWS_ID: user_input[CONF_PWS_ID],
+                },
+                options={
+                    CONF_LATITUDE: latitude,
+                    CONF_LONGITUDE: longitude,
+                    CONF_NUMERIC_PRECISION: DEFAULT_NUMERIC_PRECISION,
+                    CONF_LANG: DEFAULT_LANG,
+                    CONF_CALENDARDAYTEMPERATURE: DEFAULT_CALENDARDAYTEMPERATURE,
+                    CONF_FORECAST_SENSORS: DEFAULT_FORECAST_SENSORS,
+                },
+            )
 
-        return self.async_create_entry(
-            title=station_id,
-            data={
-                CONF_API_KEY: user_input[CONF_API_KEY],
-                CONF_PWS_ID: user_input[CONF_PWS_ID],
-            },
-            options={
-                CONF_LATITUDE: latitude,
-                CONF_LONGITUDE: longitude,
-                CONF_NUMERIC_PRECISION: DEFAULT_NUMERIC_PRECISION,
-                CONF_LANG: DEFAULT_LANG,
-                CONF_CALENDARDAYTEMPERATURE: DEFAULT_CALENDARDAYTEMPERATURE,
-                CONF_FORECAST_SENSORS: DEFAULT_FORECAST_SENSORS,
-            },
-        )
+        return await self._show_setup_form(user_input)
 
     async def _show_setup_form(self, errors=None):
         """Show the setup form to the user."""
@@ -155,7 +196,6 @@ class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors or {},
         )
-
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options."""
@@ -173,8 +213,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    # vol.Required(CONF_API_KEY, default=self._config_entry.data.get(CONF_API_KEY)): str,
-                    # vol.Required(CONF_PWS_ID,default=self._config_entry.data.get(CONF_PWS_ID)): str,
                     vol.Optional(
                         CONF_FORECAST_SENSORS,
                         default=self._config_entry.options.get(

@@ -9,8 +9,8 @@ The `wundergroundpws` platform uses [Weather Underground](http://www.wundergroun
 
 :+1: If you find this software useful, feel free to make a donation: [Paypal.me Donation Link](https://paypal.me/cytecheng)
 
-**v2.1.X Upgrade notes:**
-_requires Home Assistant version 2026.2 or greater._
+**v2.3.X Upgrade notes:**
+_requires Home Assistant version 2026.5 or greater._
 
 **v2.0.4 Upgrade notes:**
 _requires Home Assistant version 2023.9 or greater._
@@ -25,6 +25,8 @@ _If the forecast is not displayed in the weather card after upgrading from v2.x.
 [Installation](#installation)
 
 [Upgrade](#upgrade)
+
+[Reauthication](#reauthication)
 
 [Configure](#configure)
 
@@ -42,7 +44,7 @@ install and use the software.
 
 - **_wundergroundpws v2.X.X is a redesigned integration and not an upgrade to earlier versions._**
   SEE [Upgrade](#upgrade) section for instructions.
-- wundergroundpws v2.X.X requires Home Assistant Version 2023.1 or greater
+- wundergroundpws v2.3.X requires Home Assistant Version 2026.5 or greater
 - Registered and active Weather Underground personal weather station API key
 [Back to top](#top)
 
@@ -65,7 +67,7 @@ Please consider this when using the following information.
 
 ## Install using HACS
 
-The installation is done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store).
+The installation may be done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store).
 If you don't have HACS, you must install it before adding this integration.
 [Installation instructions here.](https://hacs.xyz/docs/setup/download)
 
@@ -87,7 +89,7 @@ Copy the contents of the custom_components directory from the extracted file int
 
 1. In Home Assistant Settings, select DEVICES & SERVICES, then ADD INTEGRATION.
 2. Select the "wundergroundpws" integration.
-3. Enter your Weather Underground API key and your Station ID (Case Sensitive. Must match the ID of your Wunderground device)
+3. Enter your Weather Underground API key and your Station ID (Case Sensitive. Must match the station ID (NOT the station KEY or NAME) of your Wunderground device)
 and submit.
 4. After the integration setup is complete, you can select "Configure" to change:
 
@@ -129,6 +131,12 @@ Restart home assistant.
 Install v2.x.x (See [Install](#installation) above).
 Reconfigure any lovelace cards, automations, scripts, etc to reflect new sensor names.
 [Back to top](#top)
+
+# Reauthication
+If your Weather Underground PWS API key expires or changes, the WundergroundPWS integration will fail to load and will show Entity is currently unavailable.  
+To Enter a new valid API key, go to Home Assistant Settings and under repairs select the WundergroundPWS Repair for Authentication expired.  
+Enter a new Valid API Key (and Station ID if necessary) and select Submit.  
+Reconfigure can also be accessed under Settings - Devices & services and select the WundergroundPWS integration.  
 
 # Configure
 Wundergroundpws integration configuration options available at:
@@ -346,7 +354,7 @@ Note: While the platform is called “wundergroundpws” the sensors will show u
 Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
 [Back to top](#top)
 
-# Weather Entity
+# HASS Weather Entity
 wundergroundpws data returned to weather entity (HASS weather forecast card):
 Current:
 - temperature
