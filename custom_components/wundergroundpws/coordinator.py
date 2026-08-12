@@ -66,8 +66,8 @@ class WundergroundPWSUpdateCoordinatorConfig:
     latitude: str
     longitude: str
     forecast_enable: bool
-    update_interval = MIN_TIME_BETWEEN_UPDATES
     tranfile: str
+    update_interval: timedelta = MIN_TIME_BETWEEN_UPDATES
 
 
 class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):

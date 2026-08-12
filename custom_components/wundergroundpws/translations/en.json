@@ -28,7 +28,8 @@
           "lang": "Language",
           "calendarday_temp": "Temperature by Calendar Day? (experimental)",
           "latitude": "Latitude - default is retrieved from StationID",
-          "longitude": "Longitude - default is retrieved from StationID"
+          "longitude": "Longitude - default is retrieved from StationID",
+          "update_interval": "Update interval (minutes)"
         }
       }
     }
