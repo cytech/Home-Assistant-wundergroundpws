@@ -1,5 +1,6 @@
 """The wundergroundpws component."""
 
+from datetime import timedelta
 import logging
 from pathlib import Path
 from typing import Final
@@ -21,6 +22,8 @@ from .const import (
     CONF_LANG,
     CONF_NUMERIC_PRECISION,
     CONF_PWS_ID,
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
 from .coordinator import (
@@ -58,6 +61,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         latitude=latitude,
         longitude=longitude,
         forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False),
+        update_interval=timedelta(
+            minutes=entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+        ),
         tranfile="",
     )
 
