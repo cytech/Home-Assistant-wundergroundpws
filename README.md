@@ -9,6 +9,9 @@ The `wundergroundpws` platform uses [Weather Underground](http://www.wundergroun
 
 :+1: If you find this software useful, feel free to make a donation: [Paypal.me Donation Link](https://paypal.me/cytecheng)
 
+**v2.4.X Upgrade notes:**
+_requires Home Assistant version 2026.11 or greater._
+
 **v2.3.X Upgrade notes:**
 _requires Home Assistant version 2026.5 or greater._
 
@@ -22,7 +25,7 @@ _If the forecast is not displayed in the weather card after upgrading from v2.x.
 
 [Weather Underground PWS API Key](#weather-underground-pws-api-key)
 
-[Installation](#installation)
+[Installation](#installation-)
 
 [Upgrade](#upgrade)
 
@@ -32,7 +35,7 @@ _If the forecast is not displayed in the weather card after upgrading from v2.x.
 
 [Description of terms and variables](#description-of-terms-and-variables)
 
-[Weather Entity](#weather-entity)
+[Weather Entity](#hass-weather-entity)
 
 [Statistics Card](#sensors-available-in-statistics)
 
@@ -44,41 +47,56 @@ install and use the software.
 
 - **_wundergroundpws v2.X.X is a redesigned integration and not an upgrade to earlier versions._**
   SEE [Upgrade](#upgrade) section for instructions.
-- wundergroundpws v2.3.X requires Home Assistant Version 2026.5 or greater
-- Registered and active Weather Underground personal weather station API key
-[Back to top](#top)
+- wundergroundpws v2.4.X requires Home Assistant Version 2026.11 or greater.
+- Registered and active Weather Underground personal weather station API key.  
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 # Weather Underground PWS API Key
 Free API keys are only issued to registered and active Weather Underground personal weather station users.
 To use this integration, you need a Weather Underground personal weather station API key and Station ID.
 To get a free API key:
-1) You must have a personal weather station registered and uploading data to Weather Underground.
-    a) Join weather Underground
-    b) Sign In
-    c) My Profile -> My Weather Stations
-    d) Add a New PWS
+1) You must have a personal weather station registered and uploading data to Weather Underground.  
+    a) Join weather Underground  
+    b) Sign In  
+    c) My Profile -> My Weather Stations  
+    d) Add a New PWS  
 2) get API key at  https://www.wunderground.com/member/api-keys.
 
-Please consider this when using the following information.
-[Back to top](#top)
+Please consider this when using the following information.  
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 
-# Installation
+# Installation  
+_Wunderground PWS V2.4.0 and Home Assistant 2026.11 (or greater).  
+If you have previously used the manual install method for Wunderground PWS, you can safely follow the instructions below to add it to Home Assistant Marketplace.  
+The Marketplace install will overwrite the integration properly with the latest release of Wunderground PWS.  
+If you previously installed using HACS, you should not have to do anything. Home Assistant migrates it when it starts after the update to 2026.11._   
 
-## Install using HACS
+## Install (or update) using Home Assistant Marketplace as custom repository (Recommended Method)
+Note: You must have an existing Github account.
+1. In Home Assistant, go to **Settings > Marketplace**.
+2. Select the "Add from link" button in upper right and enter https://github.com/cytech/Home-Assistant-wundergroundpws as the Github link.
+3. Custom repositories require a GitHub connection. The Marketplace uses GitHub device sign-in, so you approve the connection on GitHub without entering your password in Home Assistant. Follow the dialog instructions to connect Github.
+4. Now in the Search tab of Marketplace, search for "wundergroundpws".
+5. Select the Weather Underground PWS integration.
+6. Select the Install button.
+7. If installing over an existing manual install, select Restart Home Assistant and everthing should be ready to go on restart.
+8. On new install, follow the configuration steps.  
+   a). Enter your Weather Underground API key and your Station ID (Case Sensitive. Must match the station ID (NOT the station KEY or NAME) of your Wunderground device)
+   and submit.  
+   b). After the integration setup is complete, you can select "Configure" to change:
 
-The installation may be done inside [HACS](https://hacs.xyz/) (Home Assistant Community Store).
-If you don't have HACS, you must install it before adding this integration.
-[Installation instructions here.](https://hacs.xyz/docs/setup/download)
+   * Create Forecast Sensors, numeric_precision (none or decimal), language, calendarday_temp, and override latitude and longitude for forecast.
+   * Observation and condition sensors will be created and enabled.
+   * Forecast sensors are not created by default. They will be created if you enable "Create Forecast Sensors" in the integration "Configure".
+   * Forecast sensors will then be created but are disabled. To enable, goto the integration - entities and select the sensors you would like and enable them.
 
-Once HACS is installed, follow these steps:
-1. Open HACS within HomeAssistant
-2. Within HACS, select the 3-dot button (top right) and then Custom repositories from the menu
-3. In the dialog that appears, enter the following:
-   - Repository: `cytech/Home-Assistant-wundergroundpws`
-   - Category: `Integration`
-4. Click Add
-5. Now in the Search tab of HACS, search for "wundergroundpws"
+    Multiple instances can be created by repeating the above steps with a different StationID and or/API Key.
+    Note that every instance requires it's own set of API calls, so be aware of exceeding the Weather Underground Personal API rate limit.
+    Each instance calls every 5 minutes or 288 times a day.  
+
+## Marketplace Updates (per Home Assistant Docs)  
+Every project you install gets an “update entity”, so updates show up under Settings > Updates, next to the updates of Home Assistant itself. After an update, a repair tells you when a restart is needed, and can restart Home Assistant for you.
 
 ## Manual Install
 
@@ -100,8 +118,8 @@ and submit.
 
 Multiple instances can be created by repeating the above steps with a different StationID and or/API Key.
 Note that every instance requires it's own set of API calls, so be aware of exceeding the Weather Underground Personal API rate limit.
-Each instance calls every 5 minutes or 288 times a day.
-[Back to top](#top)
+Each instance calls every 5 minutes or 288 times a day.  
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 # Upgrade
 There is no upgrade to v2.x.x from earlier versions.
@@ -129,8 +147,8 @@ Restart home assistant.
 In home assistant - settings - entities, search for "wundergroundpws" and select all filtered entities and "remove selected".
 Restart home assistant.
 Install v2.x.x (See [Install](#installation) above).
-Reconfigure any lovelace cards, automations, scripts, etc to reflect new sensor names.
-[Back to top](#top)
+Reconfigure any lovelace cards, automations, scripts, etc to reflect new sensor names.  
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 # Reauthication
 If your Weather Underground PWS API key expires or changes, the WundergroundPWS integration will fail to load and will show Entity is currently unavailable.  
@@ -161,12 +179,12 @@ If checked, retrieves Forecast temperature max/min relative to calendar day (12:
 Only affects the weather entity forecast values, not the sensors.
 This field is undocumented in The Weather Company PWS API, so it is subject to change and if removed from API response in the future, will crash the integration if set true.
 
-**Latitude** - Default is retrieved from StationID
+**Latitude** - Default is retrieved from StationID.
 Override Latitude coordinate for weather forecast.
 
-**Longitude** - Default is retrieved from StationID
-Override Longitude coordinate for weather forecast.
-[Back to top](#top)
+**Longitude** - Default is retrieved from StationID.
+Override Longitude coordinate for weather forecast.  
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 # Description of terms and variables
 ```yaml
@@ -351,8 +369,8 @@ Note: While the platform is called “wundergroundpws” the sensors will show u
 [//]: # (    - sensor.wupws_weather_1d_metric_2)
 
 [//]: # (```)
-Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).
-[Back to top](#top)
+Additional details about the API are available [here](https://docs.google.com/document/d/1eKCnKXI9xnoMGRRzOL1xPCBihNV2rOet08qpE_gArAY/edit).  
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 # HASS Weather Entity
 wundergroundpws data returned to weather entity (HASS weather forecast card):
@@ -383,7 +401,7 @@ templates can be created to access these values such as:
 Wind is {{ states.weather.<STATIONID>.attributes.forecast[0].wind_bearing }} at {{ states.weather.<STATIONID>.attributes.forecast[0].wind_speed }} {{ states.weather.<STATIONID>.attributes.wind_speed_unit }}
 
 ```
-[Back to top](#top)
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 # Sensors available in statistics
 The following are wundergroundpws sensors exposed to the statistics card in Lovelace.
@@ -419,7 +437,7 @@ Note that only sensors of like units can be combined in a single card.
 * sensor.samplepwsid_wind_chill
 * sensor.samplepwsid_temperature
 
-[Back to top](#top)
+[Back to top](#home-assistant-wundergroundpws-v2xx)
 
 
 # Localization
@@ -442,5 +460,5 @@ Available lang: options are:
 'sq-AL', 'sr-BA', 'sr-ME', 'sr-RS', 'sv-SE', 'sw-KE', 'ta-IN', 'ta-LK', 'te-IN', 'ti-ER', 'ti-ET', 'tg-TJ', 'th-TH',
 'tk-TM', 'tl-PH', 'tr-TR', 'uk-UA', 'ur-PK', 'uz-UZ', 'vi-VN', 'zh-CN', 'zh-HK', 'zh-TW'
 ```
-Weather Entity (hass weather card) translations are handled by Home Assistant and configured under the user -> language setting.
-[Back to top](#top)
+Weather Entity (hass weather card) translations are handled by Home Assistant and configured under the user -> language setting.  
+[Back to top](#home-assistant-wundergroundpws-v2xx)

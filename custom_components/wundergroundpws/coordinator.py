@@ -148,8 +148,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 response = await self._session.get(url, headers=headers)
                 result_current = await response.json()
                 if result_current is None:
-                    _LOGGER.error("Check WUnderground API - NO CURRENT RESULT RETURNED FROM API")
-                    return None
+                    raise UpdateFailed("No current result returned from WUnderground API")
                 self._check_errors(url, result_current)
 
                 if not self._longitude:
@@ -167,8 +166,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 result_forecast = await response.json()
 
                 if result_forecast is None:
-                    _LOGGER.error("Check WUnderground API NO FORECAST RESULT")
-                    return None
+                    raise UpdateFailed("No forecast result returned from WUnderground API")
                 self._check_errors(url, result_forecast)
 
             result = {**result_current, **result_forecast}
@@ -180,8 +178,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
                 raise ConfigEntryAuthFailed(err) from err
             raise UpdateFailed(f"Update failed: {err}") from err
         except (TimeoutError, aiohttp.ClientError) as err:
-            _LOGGER.error("Error fetching WUnderground data: %s", repr(err))
-            return None
+            raise UpdateFailed(f"Error fetching WUnderground data: {err!r}") from err
         else:
             return result
         # _LOGGER.debug(f'WUnderground data {self.data}')

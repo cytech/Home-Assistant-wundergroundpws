@@ -1,3 +1,8 @@
+v2.4.0
+Raise UpdateFailed in coordinator.py on result_current and result_forecast instead of returning none.  
+Per discussion #326 - Every sensor logs a TypeError traceback when an API fetch fails.  
+Update Readme to reflect change to Home Assistant Marketplace from HACS.  
+
 v2.3.0  
 Implement reauth in config flow for expired API key.  
 Apply PR #315 Set unit based on sensor description, independent of response data.  
