@@ -23,16 +23,19 @@ from .const import (
     CONF_LANG,
     CONF_NUMERIC_PRECISION,
     CONF_PWS_ID,
+    CONF_UPDATE_INTERVAL,
     DEFAULT_CALENDARDAYTEMPERATURE,
     DEFAULT_FORECAST_SENSORS,
     DEFAULT_LANG,
     DEFAULT_NUMERIC_PRECISION,
     DEFAULT_TIMEOUT,
+    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
     FIELD_LATITUDE,
     FIELD_LONGITUDE,
     FIELD_OBSERVATIONS,
     LANG_CODES,
+    MIN_UPDATE_INTERVAL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -179,6 +182,7 @@ class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_LANG: DEFAULT_LANG,
                     CONF_CALENDARDAYTEMPERATURE: DEFAULT_CALENDARDAYTEMPERATURE,
                     CONF_FORECAST_SENSORS: DEFAULT_FORECAST_SENSORS,
+                    CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
                 },
             )
 
@@ -247,6 +251,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         "Latitude and longitude must exist together",
                         default=self._config_entry.options.get(CONF_LONGITUDE),
                     ): longitude,
+                    vol.Optional(
+                        CONF_UPDATE_INTERVAL,
+                        default=self._config_entry.options.get(
+                            CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
+                        ),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=MIN_UPDATE_INTERVAL)),
                 }
             ),
         )

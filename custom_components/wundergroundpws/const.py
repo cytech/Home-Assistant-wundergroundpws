@@ -33,6 +33,7 @@ CONF_NUMERIC_PRECISION = "numeric_precision"
 CONF_LANG = "lang"
 CONF_CALENDARDAYTEMPERATURE = "calendarday_temp"
 CONF_FORECAST_SENSORS = "forecast_sensors"
+CONF_UPDATE_INTERVAL = "update_interval"
 
 ENTRY_PWS_ID = "pws_id"
 ENTRY_WEATHER_COORDINATOR = "weather_coordinator"
@@ -166,6 +167,8 @@ DEFAULT_NUMERIC_PRECISION = "none"
 DEFAULT_LANG = "en-US"
 DEFAULT_CALENDARDAYTEMPERATURE = False
 DEFAULT_FORECAST_SENSORS = False
+DEFAULT_UPDATE_INTERVAL = 5  # minutes
+MIN_UPDATE_INTERVAL = 1  # minutes
 MAX_FORECAST_DAYS: Final = 5
 API_IMPERIAL: Final = "imperial"
 API_METRIC: Final = "metric"
