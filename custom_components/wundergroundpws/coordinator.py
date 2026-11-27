@@ -1,15 +1,12 @@
 """The WundergroundPWS data coordinator."""
 
+import logging
 from asyncio import timeout
 from dataclasses import dataclass
 from datetime import timedelta
-import logging
 from typing import Any
 
 import aiohttp
-from aiohttp import ClientResponseError
-from homeassistant.exceptions import ConfigEntryAuthFailed
-
 from homeassistant.const import (
     PERCENTAGE,
     UnitOfLength,
@@ -23,6 +20,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.unit_system import METRIC_SYSTEM
 
+from .auth_retry import AuthRetry
 from .const import (
     DEFAULT_TIMEOUT,
     FIELD_CONDITION_HUMIDITY,
@@ -68,6 +66,7 @@ class WundergroundPWSUpdateCoordinatorConfig:
     forecast_enable: bool
     update_interval = MIN_TIME_BETWEEN_UPDATES
     tranfile: str
+    entry_id: str = ""
 
 
 class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
@@ -94,6 +93,7 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
         self.data = None
         self._session = async_get_clientsession(self._hass)
         self._tranfile = config.tranfile
+        self._auth_retry = AuthRetry(hass, config.entry_id, config.api_key)
 
         if self._unit_system_api == "m":
             self.units_of_measurement = (
@@ -142,46 +142,51 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             "Accept-Encoding": "gzip",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
         }
+        result_current = await self._async_fetch(
+            "current", self._build_url(_RESOURCECURRENT), headers
+        )
+        if result_current is None:
+            raise UpdateFailed("No current result returned from WUnderground API")
+        self._check_errors("current", result_current)
+
+        if not self._longitude:
+            self._longitude = result_current[FIELD_OBSERVATIONS][0][FIELD_LONGITUDE]
+        if not self._latitude:
+            self._latitude = result_current[FIELD_OBSERVATIONS][0][FIELD_LATITUDE]
+
+        result_forecast = await self._async_fetch(
+            "forecast", self._build_url(_RESOURCEFORECAST), headers
+        )
+        if result_forecast is None:
+            raise UpdateFailed("No forecast result returned from WUnderground API")
+        self._check_errors("forecast", result_forecast)
+
+        result = {**result_current, **result_forecast}
+        # A partial success must not hide authentication failures in this entry.
+        await self._auth_retry.async_reset("current")
+        await self._auth_retry.async_reset("forecast")
+        self.data = result
+        return result
+
+    async def _async_fetch(self, endpoint: str, url: str, headers: dict) -> dict:
+        """Check HTTP status before parsing JSON, and keep errors secret-free."""
+        await self._auth_retry.async_check_retry(endpoint)
+        response = None
         try:
             async with timeout(DEFAULT_TIMEOUT):
-                url = self._build_url(_RESOURCECURRENT)
                 response = await self._session.get(url, headers=headers)
-                result_current = await response.json()
-                if result_current is None:
-                    raise UpdateFailed("No current result returned from WUnderground API")
-                self._check_errors(url, result_current)
-
-                if not self._longitude:
-                    self._longitude = result_current[FIELD_OBSERVATIONS][0][
-                        FIELD_LONGITUDE
-                    ]
-                if not self._latitude:
-                    self._latitude = result_current[FIELD_OBSERVATIONS][0][
-                        FIELD_LATITUDE
-                    ]
-
-            async with timeout(DEFAULT_TIMEOUT):
-                url = self._build_url(_RESOURCEFORECAST)
-                response = await self._session.get(url, headers=headers)
-                result_forecast = await response.json()
-
-                if result_forecast is None:
-                    raise UpdateFailed("No forecast result returned from WUnderground API")
-                self._check_errors(url, result_forecast)
-
-            result = {**result_current, **result_forecast}
-
-            self.data = result
-
-        except ClientResponseError as err:
-            if err.status == 401:
-                raise ConfigEntryAuthFailed(err) from err
-            raise UpdateFailed(f"Update failed: {err}") from err
-        except (TimeoutError, aiohttp.ClientError) as err:
-            raise UpdateFailed(f"Error fetching WUnderground data: {err!r}") from err
-        else:
-            return result
-        # _LOGGER.debug(f'WUnderground data {self.data}')
+                if response.status == 401:
+                    await self._auth_retry.async_rejected(endpoint)
+                if response.status >= 400:
+                    raise UpdateFailed(
+                        f"Weather API returned HTTP {response.status} for {endpoint}"
+                    )
+                return await response.json()
+        except (TimeoutError, aiohttp.ClientError):
+            raise UpdateFailed(f"Could not fetch weather {endpoint}") from None
+        finally:
+            if response is not None:
+                response.release()
 
     def _build_url(self, baseurl):
         """Build a URL for API requests with appropriate parameters."""
@@ -203,15 +208,12 @@ class WundergroundPWSUpdateCoordinator(DataUpdateCoordinator):
             units=self._unit_system_api,
         )
 
-    def _check_errors(self, url: str, response: dict):
+    def _check_errors(self, endpoint: str, response: dict):
         """Check for errors in the API response and raise if found."""
-        # _LOGGER.debug(f'Checking errors from {url} in {response}')
         if "errors" not in response:
             return
-        if errors := response["errors"]:
-            raise ValueError(
-                f"Error from {url}: ; ".join([e["message"] for e in errors])
-            )
+        if response["errors"]:
+            raise UpdateFailed(f"Weather API returned errors for {endpoint}")
 
     def request_feature(self, feature):
         """Register a feature to be fetched from the WU API."""

@@ -11,6 +11,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.util import json as json_util
 from homeassistant.util.unit_system import METRIC_SYSTEM
 
+from .auth_retry import AuthRetry
 from .const import (
     API_IMPERIAL,
     API_METRIC,
@@ -59,6 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         longitude=longitude,
         forecast_enable=entry.options.get(CONF_FORECAST_SENSORS, False),
         tranfile="",
+        entry_id=entry.entry_id,
     )
 
     # get translation file for wupws sensor friendly_name
@@ -106,3 +108,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update listener."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove retry metadata when deleting this integration entry."""
+    await AuthRetry(hass, entry.entry_id, entry.data[CONF_API_KEY]).async_remove()

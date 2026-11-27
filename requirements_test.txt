@@ -1,0 +1,3 @@
+homeassistant==2026.11.3
+pytest==9.2.0
+pytest-asyncio==1.5.0
