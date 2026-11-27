@@ -18,3 +18,10 @@ credential changes, recovery, non-authentication errors, request deadlines,
 response cleanup, initial setup retries, and secret-free exception messages.
 
 This is not a full running-Home-Assistant end-to-end test or a live provider test.
+
+Reload compatibility is also checked with Home Assistant 2026.12.0b0.
+In a separate environment, install the same pytest versions and
+`homeassistant==2026.12.0b0`, then run `python -m pytest -q`.
+Both environments pass 27 tests. The reload tests verify that setup does not
+register a redundant listener, reauth schedules one reload for changed or
+unchanged credentials, and options declare HA-managed automatic reload.

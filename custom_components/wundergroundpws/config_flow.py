@@ -197,7 +197,7 @@ class WundergroundPWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors or {},
         )
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlowWithReload):
     """Handle options."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
